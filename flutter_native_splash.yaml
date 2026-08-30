@@ -1,0 +1,15 @@
+flutter_native_splash:
+  # تثبيت اللون الأبيض للوضع العادي والداكن
+  color: "#FFFFFF"
+  color_dark: "#FFFFFF"
+
+  image: assets/app_icon.png
+  fullscreen: true
+
+  #! إعدادات Android 12+
+  android_12:
+    # تثبيت اللون الأبيض لجميع الأوضاع في أندرويد 12 وما فوق
+    color: "#FFFFFF"
+    color_dark: "#FFFFFF"
+
+    image: assets/logo6.png
