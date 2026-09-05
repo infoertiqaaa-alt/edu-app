@@ -49,8 +49,6 @@ late int currentScreen ;
                 ],
             ),
           child: BottomNavigationBar(
-              // elevation: 0,
-              // backgroundColor: Colors.transparent,
               type:BottomNavigationBarType.fixed,
               unselectedItemColor: const Color(0xff9CA3AF),
                 selectedItemColor: AppColors.primary,
@@ -64,7 +62,6 @@ late int currentScreen ;
               items: [
                   BottomNavigationBarItem(icon: Icon(Icons.home_filled),label: 'الرئيسية'),
                   BottomNavigationBarItem(icon: Icon(Icons.book),label: 'الدروس'),
-                  BottomNavigationBarItem(icon: Icon(Icons.report),label: 'التقارير'),
               ]
               ),
         ),

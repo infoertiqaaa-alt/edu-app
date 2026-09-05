@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:teacher/core/helper/extentions.dart';
 import 'package:teacher/core/routing/routes.dart';
 import 'package:teacher/core/widgets/custom_button.dart';
 import 'package:teacher/core/widgets/app_error_dialog.dart';
@@ -54,7 +53,10 @@ class _LoginViewState extends State<_LoginView> {
               AppErrorDialog.show(context, message: state.message);
             }
             if (state is AuthSuccess) {
-              context.pushReplacementNamed(Routes.qrCodeView);
+              Navigator.of(context).pushNamedAndRemoveUntil(
+            state.user.role == 'student' ? Routes.root : Routes.scanQrEntry,
+            (route) => false,
+          );
             }
           },
           builder: (context, state) {

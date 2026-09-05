@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:teacher/core/di/service_locator.dart';
+import 'package:teacher/core/routing/routes.dart';
+import 'package:teacher/core/storage/token_storage.dart';
 import 'package:teacher/core/theme/app_colors.dart';
 import '../cubit/scan_qr_cubit.dart';
 import 'scan_qr_camera_view.dart';
@@ -42,6 +44,26 @@ class _ScanQrEntryBody extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () async {
+                        await sl<TokenStorage>().clearToken();
+                        if (!context.mounted) return;
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          Routes.loginScreen,
+                          (route) => false,
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.logout,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 16.w),
+                  ],
+                ),
                 SizedBox(height: 16.h),
                 // خط صغير أعلى الشاشة (handle) زي التصميم
                 Container(
