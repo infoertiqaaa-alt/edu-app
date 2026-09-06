@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:teacher/core/routing/routes.dart';
-import 'package:teacher/core/widgets/custom_button.dart';
-import 'package:teacher/core/widgets/app_error_dialog.dart';
+import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/widgets/custom_button.dart';
+import 'package:mr/core/widgets/app_error_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/di/service_locator.dart';
 import '../cubit/auth_cubit.dart';
@@ -93,7 +93,7 @@ class _LoginViewState extends State<_LoginView> {
                           'الرجاء إدخال بياناتك للمتابعة إلى حسابك',
                           style: GoogleFonts.tajawal(
                             fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                         const Spacer(),
@@ -105,7 +105,7 @@ class _LoginViewState extends State<_LoginView> {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
+                                color: Colors.black.withValues(alpha: 0.08),
                                 blurRadius: 24,
                                 offset: const Offset(0, 10),
                               ),

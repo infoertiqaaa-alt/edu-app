@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:teacher/core/di/service_locator.dart';
-import 'package:teacher/core/routing/routes.dart';
-import 'package:teacher/core/storage/token_storage.dart';
-import 'package:teacher/core/theme/app_colors.dart';
-import 'package:teacher/features/assistant/scan_qr_code/presentation/widgets/info_section_card.dart';
-import 'package:teacher/core/widgets/student_avatar.dart';
+import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/storage/token_storage.dart';
+import 'package:mr/core/theme/app_colors.dart';
+import 'package:mr/features/assistant/scan_qr_code/presentation/widgets/info_section_card.dart';
+import 'package:mr/core/widgets/student_avatar.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 

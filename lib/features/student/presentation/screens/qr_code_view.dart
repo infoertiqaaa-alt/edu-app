@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:teacher/core/di/service_locator.dart';
-import 'package:teacher/core/helper/extentions.dart';
-import 'package:teacher/core/routing/routes.dart';
-import 'package:teacher/core/theme/app_colors.dart';
-import 'package:teacher/core/widgets/student_avatar.dart';
-import 'package:teacher/features/student/presentation/widgets/qr_code_widget.dart';
+import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/helper/extentions.dart';
+import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/theme/app_colors.dart';
+import 'package:mr/core/widgets/student_avatar.dart';
+import 'package:mr/features/student/presentation/widgets/qr_code_widget.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 

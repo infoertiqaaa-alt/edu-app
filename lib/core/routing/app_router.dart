@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:teacher/core/routing/routes.dart';
-import 'package:teacher/features/auth/presentation/screens/login_screen.dart';
-import 'package:teacher/features/auth/presentation/screens/splash_screen.dart';
-import 'package:teacher/features/onboarding/views/onboard.dart';
-import 'package:teacher/features/root.dart';
-import 'package:teacher/features/student/presentation/screens/profile_view.dart';
-import 'package:teacher/features/assistant/scan_qr_code/presentation/views/scan_qr_entry_view.dart';
-import 'package:teacher/features/assistant/scan_qr_code/presentation/views/scan_qr_camera_view.dart';
-import 'package:teacher/features/assistant/scan_qr_code/presentation/views/scan_qr_result_view.dart';
-import 'package:teacher/features/lessons/presentation/screens/lesson_detail_screen.dart';
+import 'package:mr/core/routing/routes.dart';
+import 'package:mr/features/auth/presentation/screens/login_screen.dart';
+import 'package:mr/features/auth/presentation/screens/splash_screen.dart';
+import 'package:mr/features/onboarding/views/onboard.dart';
+import 'package:mr/features/root.dart';
+import 'package:mr/features/student/presentation/screens/profile_view.dart';
+import 'package:mr/features/assistant/scan_qr_code/presentation/views/scan_qr_entry_view.dart';
+import 'package:mr/features/assistant/scan_qr_code/presentation/views/scan_qr_camera_view.dart';
+import 'package:mr/features/assistant/scan_qr_code/presentation/views/scan_qr_result_view.dart';
+import 'package:mr/features/lessons/presentation/screens/lesson_detail_screen.dart';
 
 class AppRouter {
   Route generateRoute(RouteSettings settings) {

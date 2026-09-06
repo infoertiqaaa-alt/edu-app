@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:teacher/core/network/network_exceptions.dart';
+import 'package:mr/core/network/network_exceptions.dart';
 import '../../domain/repositories/scan_qr_repository.dart';
 import '../datasources/scan_qr_remote_data_source.dart';
 import '../models/scanned_student_model.dart';

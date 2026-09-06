@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:teacher/core/network/network_exceptions.dart';
+import 'package:mr/core/network/network_exceptions.dart';
 import '../../domain/repositories/scan_qr_repository.dart';
 import 'scan_qr_state.dart';
 

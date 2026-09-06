@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
-import 'package:teacher/core/theme/app_colors.dart';
-import 'package:teacher/features/lessons/presentation/screens/lessons_list_screen.dart';
-import 'package:teacher/features/student/presentation/screens/qr_code_view.dart';
+import 'package:mr/core/theme/app_colors.dart';
+import 'package:mr/features/lessons/presentation/screens/lessons_list_screen.dart';
+import 'package:mr/features/student/presentation/screens/qr_code_view.dart';
 
 class Root extends StatefulWidget {
   const Root({super.key, this.selectScreen});
@@ -31,9 +31,9 @@ late int currentScreen ;
   Widget build(BuildContext context) {
     return Scaffold(
         body: PageView(
-            controller:controller ,
+            controller: controller,
+            physics: const NeverScrollableScrollPhysics(),
             children: screens,
-            physics: NeverScrollableScrollPhysics(),   
         ),
         bottomNavigationBar: Container(
             padding: EdgeInsets.all(4),

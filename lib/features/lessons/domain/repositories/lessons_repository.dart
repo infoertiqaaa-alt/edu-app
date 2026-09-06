@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:teacher/core/network/network_exceptions.dart';
+import 'package:mr/core/network/network_exceptions.dart';
 import '../../data/models/lesson_model.dart';
 import '../../data/models/lesson_detail_model.dart';
 

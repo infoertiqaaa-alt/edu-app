@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:teacher/core/di/service_locator.dart';
-import 'package:teacher/core/routing/routes.dart';
-import 'package:teacher/core/storage/token_storage.dart';
-import 'package:teacher/core/theme/app_colors.dart';
+import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/storage/token_storage.dart';
+import 'package:mr/core/theme/app_colors.dart';
 import '../cubit/scan_qr_cubit.dart';
 import 'scan_qr_camera_view.dart';
 
@@ -70,7 +70,7 @@ class _ScanQrEntryBody extends StatelessWidget {
                   width: 40.w,
                   height: 4.h,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),

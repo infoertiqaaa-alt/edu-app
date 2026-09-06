@@ -1,7 +1,7 @@
 import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:teacher/core/theme/app_colors.dart';
+import 'package:mr/core/theme/app_colors.dart';
 import '../cubit/scan_qr_cubit.dart';
 import '../cubit/scan_qr_state.dart';
 import 'scan_qr_result_view.dart';

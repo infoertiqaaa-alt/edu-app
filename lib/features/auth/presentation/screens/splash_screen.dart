@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:teacher/core/di/service_locator.dart';
-import 'package:teacher/core/routing/routes.dart';
-import 'package:teacher/core/storage/onboarding_storage.dart';
+import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/storage/onboarding_storage.dart';
 import '../cubit/auto_auth_cubit.dart';
 import '../cubit/auto_auth_state.dart';
 

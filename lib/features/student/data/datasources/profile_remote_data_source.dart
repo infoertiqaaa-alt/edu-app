@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:teacher/core/constants/api_constants.dart';
-import 'package:teacher/core/network/api_response.dart';
+import 'package:mr/core/constants/api_constants.dart';
+import 'package:mr/core/network/api_response.dart';
 import '../models/student_profile_model.dart';
 
 abstract class ProfileRemoteDataSource {

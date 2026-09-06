@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:teacher/core/constants/api_constants.dart';
-import 'package:teacher/core/network/api_response.dart';
-import 'package:teacher/core/network/network_exceptions.dart';
+import 'package:mr/core/constants/api_constants.dart';
+import 'package:mr/core/network/api_response.dart';
+import 'package:mr/core/network/network_exceptions.dart';
 import '../models/scanned_student_model.dart';
 
 abstract class ScanQrRemoteDataSource {

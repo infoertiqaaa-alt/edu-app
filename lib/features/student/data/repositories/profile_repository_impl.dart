@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:teacher/core/network/network_exceptions.dart';
+import 'package:mr/core/network/network_exceptions.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_remote_data_source.dart';
 import '../models/student_profile_model.dart';

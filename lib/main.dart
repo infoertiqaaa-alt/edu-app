@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:teacher/core/di/service_locator.dart';
-import 'package:teacher/core/routing/app_router.dart';
-import 'package:teacher/core/routing/routes.dart';
+import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/routing/app_router.dart';
+import 'package:mr/core/routing/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
