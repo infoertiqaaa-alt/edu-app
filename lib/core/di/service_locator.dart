@@ -21,6 +21,10 @@ import '../../features/lessons/data/repositories/lessons_repository_impl.dart';
 import '../../features/lessons/domain/repositories/lessons_repository.dart';
 import '../../features/lessons/presentation/cubit/lessons_cubit.dart';
 import '../../features/lessons/presentation/cubit/lesson_detail_cubit.dart';
+import '../../features/lessons/presentation/cubit/lesson_notes_cubit.dart';
+import '../../features/lessons/data/datasources/notes_database.dart';
+import '../../features/lessons/data/repositories/lesson_notes_repository_impl.dart';
+import '../../features/lessons/domain/repositories/lesson_notes_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -71,4 +75,11 @@ Future<void> setupServiceLocator() async {
   );
   sl.registerFactory<LessonsCubit>(() => LessonsCubit(sl()));
   sl.registerFactory<LessonDetailCubit>(() => LessonDetailCubit(sl()));
+
+  // Notes Feature Registration (Local DB)
+  sl.registerLazySingleton<NotesDatabase>(() => NotesDatabase.instance);
+  sl.registerLazySingleton<LessonNotesRepository>(
+    () => LessonNotesRepositoryImpl(sl()),
+  );
+  sl.registerFactory<LessonNotesCubit>(() => LessonNotesCubit(sl()));
 }

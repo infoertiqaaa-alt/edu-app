@@ -1,6 +1,6 @@
 {
-    "name": "teacher",
-    "short_name": "teacher",
+    "name": "MR",
+    "short_name": "MR",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

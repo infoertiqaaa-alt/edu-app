@@ -22,8 +22,45 @@ class LessonsListScreen extends StatelessWidget {
   }
 }
 
-class _LessonsListBody extends StatelessWidget {
+class _LessonsListBody extends StatefulWidget {
   const _LessonsListBody();
+
+  @override
+  State<_LessonsListBody> createState() => _LessonsListBodyState();
+}
+
+class _LessonsListBodyState extends State<_LessonsListBody> {
+  final TextEditingController _searchController = TextEditingController();
+  bool _showSearch = false;
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _showSearch = !_showSearch;
+      if (!_showSearch) {
+        _searchController.clear();
+        _query = '';
+      }
+    });
+  }
+
+  List<LessonModel> _applySearch(List<LessonModel> lessons) {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return lessons;
+    return lessons
+        .where(
+          (lesson) =>
+              lesson.title.toLowerCase().contains(query) ||
+              lesson.chapterName.toLowerCase().contains(query),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +70,12 @@ class _LessonsListBody extends StatelessWidget {
         backgroundColor: const Color(0xFFF5F5F5),
         body: Column(
           children: [
-            const _HeaderWidget(),
+            _HeaderWidget(
+              showSearch: _showSearch,
+              searchController: _searchController,
+              onSearchTap: _toggleSearch,
+              onSearchChanged: (value) => setState(() => _query = value),
+            ),
             Expanded(
               child: BlocBuilder<LessonsCubit, LessonsState>(
                 builder: (context, state) {
@@ -67,11 +109,14 @@ class _LessonsListBody extends StatelessWidget {
                   }
 
                   final lessons = (state as LessonsLoaded).lessons;
+                  final filtered = _applySearch(lessons);
 
-                  if (lessons.isEmpty) {
+                  if (filtered.isEmpty) {
                     return Center(
                       child: Text(
-                        'لا يوجد دروس حالياً',
+                        _query.trim().isEmpty
+                            ? 'لا يوجد دروس حالياً'
+                            : 'لا توجد نتائج للبحث',
                         style: GoogleFonts.cairo(
                           fontSize: 16,
                           color: AppColors.textSecondary,
@@ -83,7 +128,7 @@ class _LessonsListBody extends StatelessWidget {
                   return RefreshIndicator(
                     onRefresh: () =>
                         context.read<LessonsCubit>().getLessons(),
-                    child: _LessonsContent(lessons: lessons),
+                    child: _LessonsContent(lessons: filtered),
                   );
                 },
               ),
@@ -96,7 +141,17 @@ class _LessonsListBody extends StatelessWidget {
 }
 
 class _HeaderWidget extends StatelessWidget {
-  const _HeaderWidget();
+  final bool showSearch;
+  final TextEditingController searchController;
+  final VoidCallback onSearchTap;
+  final ValueChanged<String> onSearchChanged;
+
+  const _HeaderWidget({
+    required this.showSearch,
+    required this.searchController,
+    required this.onSearchTap,
+    required this.onSearchChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +183,7 @@ class _HeaderWidget extends StatelessWidget {
                   ),
                   const Spacer(),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: onSearchTap,
                     child: Container(
                       width: 40.w,
                       height: 40.w,
@@ -137,7 +192,7 @@ class _HeaderWidget extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.search_rounded,
+                        showSearch ? Icons.close_rounded : Icons.search_rounded,
                         color: Colors.white,
                         size: 22.w,
                       ),
@@ -145,15 +200,65 @@ class _HeaderWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 4.h),
-              Text(
-                'تابع تقدمك في المنهج الأكاديمي',
-                style: GoogleFonts.cairo(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white.withValues(alpha: 0.8),
+              if (showSearch)
+                Padding(
+                  padding: EdgeInsets.only(top: 12.h),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: onSearchChanged,
+                    autofocus: true,
+                    textInputAction: TextInputAction.search,
+                    style: GoogleFonts.cairo(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                    cursorColor: Colors.white,
+                    decoration: InputDecoration(
+                      hintText: 'ابحث عن درس...',
+                      hintStyle: GoogleFonts.cairo(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.7),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.15),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: Colors.white,
+                        size: 20.w,
+                      ),
+                      suffixIcon: searchController.text.isNotEmpty
+                          ? IconButton(
+                              onPressed: () {
+                                searchController.clear();
+                                onSearchChanged('');
+                              },
+                              icon: Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 20.w,
+                              ),
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                    ),
+                  ),
+                )
+              else ...[
+                SizedBox(height: 4.h),
+                Text(
+                  'تابع تقدمك في المنهج الأكاديمي',
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
                 ),
-              ),
+              ],
               SizedBox(height: 8.h),
             ],
           ),
@@ -190,7 +295,7 @@ class _LessonsContent extends StatelessWidget {
             child: ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
               itemCount: lessons.length,
-              separatorBuilder: (_, __) => SizedBox(height: 12.h),
+              separatorBuilder: (_, _) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
                 final lesson = lessons[index];
                 return LessonCardWidget(
@@ -298,7 +403,7 @@ class LessonCardWidget extends StatelessWidget {
                     width: 110.w,
                     height: 85.h,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       width: 110.w,
                       height: 85.h,
                       color: AppColors.grey.withValues(alpha: 0.3),
