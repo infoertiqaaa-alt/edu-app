@@ -13,4 +13,8 @@ class ApiConstants {
       '/assistant/student/scan/${Uri.encodeComponent(qrCodeString)}';
   static const String registerAttendance = '/assistant/attendance/register';
   static const String lessons = '/student/lessons';
-  }
+
+  // App release / update endpoints (client reads these, never publishes)
+  static const String latestRelease = '/app/releases/latest';
+  static const String latestReleaseDownload = '/app/releases/latest/download';
+}

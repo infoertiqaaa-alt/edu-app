@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/widgets/custom_button.dart';
 import 'package:mr/core/widgets/app_error_dialog.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -53,10 +54,10 @@ class _LoginViewState extends State<_LoginView> {
               AppErrorDialog.show(context, message: state.message);
             }
             if (state is AuthSuccess) {
-              Navigator.of(context).pushNamedAndRemoveUntil(
-            state.user.role == 'student' ? Routes.root : Routes.scanQrEntry,
-            (route) => false,
-          );
+              context.pushUntil(
+                state.user.role == 'student' ? Routes.root : Routes.scanQrEntry,
+                (route) => false,
+              );
             }
           },
           builder: (context, state) {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mr/core/helper/extentions.dart';
 import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/storage/onboarding_storage.dart';
 import 'package:mr/core/theme/app_colors.dart';
@@ -125,9 +125,9 @@ class _RootState extends State<Onboard> {
 
                       await sl<OnboardingStorage>().markCompleted();
                       if (!context.mounted) return;
-                      context.pushNamedAndRemoveUntil(
+                      context.pushUntil(
                         Routes.loginScreen,
-                        predicate: (route) => false,
+                        (route) => false,
                       );
                     },
                   ),

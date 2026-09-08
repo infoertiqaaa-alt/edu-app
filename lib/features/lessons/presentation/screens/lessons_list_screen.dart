@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
-import 'package:mr/core/helper/extentions.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import '../../data/models/lesson_model.dart';
@@ -80,7 +80,7 @@ class _LessonsListBodyState extends State<_LessonsListBody> {
               child: BlocBuilder<LessonsCubit, LessonsState>(
                 builder: (context, state) {
                   if (state is LessonsLoading || state is LessonsInitial) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator(color: AppColors.primary));
                   }
 
                   if (state is LessonsError) {
@@ -301,7 +301,7 @@ class _LessonsContent extends StatelessWidget {
                 return LessonCardWidget(
                   lesson: lesson,
                   onTap: () {
-                    context.pushNamed(
+                    context.push(
                       Routes.lessonDetail,
                       arguments: lesson.id,
                     );

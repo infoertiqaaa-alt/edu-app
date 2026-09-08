@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
-import 'package:mr/core/helper/extentions.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import 'package:mr/core/widgets/student_avatar.dart';
@@ -72,7 +72,7 @@ class _QrCodeBody extends StatelessWidget {
                   child: BlocBuilder<ProfileCubit, ProfileState>(
                     builder: (context, state) {
                       if (state is ProfileLoading || state is ProfileInitial) {
-                        return const Center(child: CircularProgressIndicator());
+                        return Center(child: CircularProgressIndicator(color: AppColors.primary));
                       }
 
                       if (state is ProfileError) {
@@ -203,7 +203,7 @@ class _QrCodeBody extends StatelessWidget {
                   child: Center(
                     child: GestureDetector(
                       onTap: (){
-                        context.pushNamed(Routes.profileView);
+                        context.push(Routes.profileView);
                       },
                       child: StudentAvatar(
                         imageUrl: profile.profileImage,

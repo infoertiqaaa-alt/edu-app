@@ -19,8 +19,10 @@ class AppRouter {
         return MaterialPageRoute(builder: (context) => LoginScreen());
       case Routes.onBoardingView:
         return MaterialPageRoute(builder: (context) => Onboard());
+      case Routes.root1:
+        return MaterialPageRoute(builder: (context) => Root(selectScreen: 1,));
       case Routes.root:
-        return MaterialPageRoute(builder: (context) => Root());
+        return MaterialPageRoute(builder: (context) => Root());  
       case Routes.scanQrEntry:
         return MaterialPageRoute(builder: (context) => const ScanQrEntryView());
       case Routes.scanQrCamera:

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/storage/onboarding_storage.dart';
+import 'package:mr/core/theme/app_colors.dart';
 import '../cubit/auto_auth_cubit.dart';
 import '../cubit/auto_auth_state.dart';
 
@@ -43,7 +45,7 @@ class _SplashBodyState extends State<_SplashBody> {
     return BlocListener<AutoAuthCubit, AutoAuthState>(
       listener: (context, state) async {
         if (state is AutoAuthAuthenticated) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
+          context.pushUntil(
             state.role == 'student' ? Routes.root : Routes.scanQrEntry,
             (route) => false,
           );
@@ -53,13 +55,13 @@ class _SplashBodyState extends State<_SplashBody> {
           final onboardingCompleted = await sl<OnboardingStorage>()
               .isCompleted();
           if (!context.mounted) return;
-          Navigator.of(context).pushNamedAndRemoveUntil(
+          context.pushUntil(
             onboardingCompleted ? Routes.loginScreen : Routes.onBoardingView,
             (route) => false,
           );
         }
       },
-      child: const Scaffold(body: Center(child: CircularProgressIndicator())),
+      child: Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary))),
     );
   }
 }

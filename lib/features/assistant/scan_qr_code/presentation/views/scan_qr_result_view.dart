@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mr/core/routing/routes.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import 'package:mr/core/widgets/app_error_dialog.dart';
 import 'package:mr/core/widgets/student_avatar.dart';
@@ -67,7 +68,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
       ),
     );
 
-    Navigator.of(context).pushNamedAndRemoveUntil(
+    context.pushUntil(
       Routes.scanQrEntry,
       (route) => false,
     );
@@ -83,7 +84,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
           builder: (context, state) {
             if (state is! ScanQrSuccess) {
               // مفروض ميوصلش هنا غير لما يبقى فيه بيانات، بس احتياطًا
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
 
             final student = state.student;

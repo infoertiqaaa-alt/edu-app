@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
-import 'package:mr/core/helper/extentions.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -27,8 +28,45 @@ class LessonDetailScreen extends StatelessWidget {
   }
 }
 
-class _LessonDetailBody extends StatelessWidget {
+class _LessonDetailBody extends StatefulWidget {
   const _LessonDetailBody();
+
+  @override
+  State<_LessonDetailBody> createState() => _LessonDetailBodyState();
+}
+
+class _LessonDetailBodyState extends State<_LessonDetailBody>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +77,7 @@ class _LessonDetailBody extends StatelessWidget {
         body: BlocBuilder<LessonDetailCubit, LessonDetailState>(
           builder: (context, state) {
             if (state is LessonDetailLoading || state is LessonDetailInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
 
             if (state is LessonDetailError) {
@@ -50,7 +88,7 @@ class _LessonDetailBody extends StatelessWidget {
                     Text(state.message, style: GoogleFonts.cairo(fontSize: 15)),
                     SizedBox(height: 12.h),
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.pop(),
                       child: Text('رجوع', style: GoogleFonts.cairo()),
                     ),
                   ],
@@ -97,7 +135,7 @@ class _CustomAppBar extends StatelessWidget {
           child: Row(
             children: [
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () => context.pushReplacement(Routes.root1),
                   child: Row(
                   children: [
                     Icon(
@@ -148,6 +186,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   static const String _fallbackVideoId = 'AEHJqatke6E';
   late final YoutubePlayerController _controller;
   bool _showThumbnail = true;
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -158,12 +197,29 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       videoId: videoId,
       autoPlay: false,
     );
+    _controller.setFullScreenListener(_onFullScreenChanged);
   }
 
   @override
   void dispose() {
+    _controller.setFullScreenListener((_) {});
     _controller.close();
     super.dispose();
+  }
+
+  void _onFullScreenChanged(bool isFullScreen) {
+    if (!mounted) return;
+    setState(() => _isFullScreen = isFullScreen);
+    if (isFullScreen) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
   }
 
   void _startPlayback() {
@@ -173,26 +229,38 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        YoutubePlayer(
-          controller: _controller,
-        ),
-        if (_showThumbnail)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _startPlayback,
-              child: widget.lesson.thumbnailUrl.isNotEmpty
-                  ? Image.network(
-                      widget.lesson.thumbnailUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const _ThumbnailPlaceholder(),
-                    )
-                  : const _ThumbnailPlaceholder(),
-            ),
-          ),
-      ],
+    return PopScope(
+      canPop: !_isFullScreen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _isFullScreen) {
+          _controller.exitFullScreen(lock: false);
+        }
+      },
+      child: YoutubePlayer(
+        controller: _controller,
+        builder: (context, player, controller) {
+          return Stack(
+            alignment: Alignment.center,
+            children: [
+              player,
+              if (_showThumbnail && !_isFullScreen)
+                Positioned.fill(
+                  child: GestureDetector(
+                    onTap: _startPlayback,
+                    child: widget.lesson.thumbnailUrl.isNotEmpty
+                        ? Image.network(
+                            widget.lesson.thumbnailUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) =>
+                                const _ThumbnailPlaceholder(),
+                          )
+                        : const _ThumbnailPlaceholder(),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -288,7 +356,7 @@ class LessonNavigationRow extends StatelessWidget {
                     label: 'الدرس السابق',
                     icon: Icons.arrow_back_ios_new_rounded,
                     onTap: () {
-                      context.pushNamed(
+                      context.push(
                         Routes.lessonDetail,
                         arguments: lesson.previousLessonId,
                       );
@@ -304,7 +372,7 @@ class LessonNavigationRow extends StatelessWidget {
                     icon: Icons.arrow_forward_ios_rounded,
                     isLeading: true,
                     onTap: () {
-                      context.pushNamed(
+                      context.push(
                         Routes.lessonDetail,
                         arguments: lesson.nextLessonId,
                       );
@@ -515,7 +583,7 @@ class _NotesTabBody extends StatelessWidget {
     return BlocBuilder<LessonNotesCubit, LessonNotesState>(
       builder: (context, state) {
         if (state is LessonNotesLoading || state is LessonNotesInitial) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
 
         if (state is LessonNotesError) {
@@ -604,12 +672,12 @@ class _NotesTabBody extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => dialogContext.pop(),
             child: Text('إلغاء', style: GoogleFonts.cairo()),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(dialogContext);
+              dialogContext.pop();
               cubit.deleteNote(note);
             },
             child: Text(
@@ -649,7 +717,7 @@ class _NotesTabBody extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
+            onPressed: () => dialogContext.pop(),
             child: Text('إلغاء', style: GoogleFonts.cairo()),
           ),
           ElevatedButton(
@@ -661,7 +729,7 @@ class _NotesTabBody extends StatelessWidget {
               } else {
                 cubit.updateNote(note, content);
               }
-              Navigator.pop(dialogContext);
+              dialogContext.pop();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

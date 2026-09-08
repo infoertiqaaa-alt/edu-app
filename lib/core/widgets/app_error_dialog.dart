@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../extensions/context_extensions.dart';
 import '../theme/app_colors.dart';
 
 class AppErrorDialog extends StatelessWidget {
@@ -90,7 +91,7 @@ class AppErrorDialog extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.white,

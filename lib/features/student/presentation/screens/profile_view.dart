@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
+import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/storage/token_storage.dart';
 import 'package:mr/core/theme/app_colors.dart';
@@ -47,7 +48,7 @@ class _ProfileBody extends StatelessWidget {
         body: BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
             if (state is ProfileLoading || state is ProfileInitial) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
 
             if (state is ProfileError) {
@@ -192,7 +193,7 @@ class _ProfileBody extends StatelessWidget {
                                 onPressed: () async {
                                   await sl<TokenStorage>().clearToken();
                                   if (!context.mounted) return;
-                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                  context.pushUntil(
                                     Routes.loginScreen,
                                     (route) => false,
                                   );
