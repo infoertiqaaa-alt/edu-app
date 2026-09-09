@@ -50,11 +50,15 @@ Example: `version: 2.1.0+2` → `app-v2.1.0.apk`
 9. **Rename APK** — copies to `app-v${version_name}.apk` and fails if the APK was not produced.
 10. **Upload via SCP** — uploads the APK to the production server releases directory.
 11. **Verify on server** — SSH `test -f` to confirm the file exists remotely.
-12. **Publish release** — `POST /app/releases` (Bearer token) with `version_code`, `version_name`,
-    `changelog`, and `file_name`; fails on any non-2xx response.
-13. **Verify latest release** — `GET /app/releases/latest` and asserts the returned release matches
+12. **Login to Backend** — posts `BACKEND_USERNAME`/`BACKEND_PASSWORD` to `POST /auth/login`, reads the
+    Access Token from `data.token`, masks it, and keeps it only for the current job (never stored).
+13. **Publish release** — `POST /app/releases` (Bearer token) with `version_code`, `version_name`,
+    `changelog`, and `file_name`. If the Backend returns `401 Unauthorized`, the pipeline logs in
+    again and retries **once**; any other non-2xx response fails the run. There is no infinite retry.
+14. **Verify latest release** — `GET /app/releases/latest` and asserts the returned release matches
     what we just published (`version_code`, `version_name`, `file_name`); fails on mismatch.
-14. **Download endpoint check (optional)** — a lightweight `HEAD` against the download endpoint.
+15. **Download endpoint check (optional)** — a lightweight `HEAD` against the download endpoint.
+16. **Cleanup** — removes the keystore, `keystore.properties`, changelog, and any temporary files.
 
 Any failed step aborts the workflow so a partial release is never reported as successful.
 
@@ -118,7 +122,8 @@ Never commit any of these values.
 | `SERVER_HOST` | Production server hostname/IP (e.g. `mr-edu.ertiqaa.site`) |
 | `SERVER_USER` | SSH user (e.g. `deploy`) |
 | `SERVER_SSH_KEY` | SSH **private key** (PEM) allowed to SCP/SSH into the server |
-| `BACKEND_API_TOKEN` | Bearer token for `POST /app/releases` |
+| `BACKEND_USERNAME` | Backend login username (the app publishes releases with this account) |
+| `BACKEND_PASSWORD` | Backend login password — **never** printed, only referenced via env |
 | `ANDROID_KEYSTORE_BASE64` | Your release keystore (`.jks`) encoded as **base64** |
 | `KEYSTORE_PASSWORD` | Keystore password |
 | `KEY_ALIAS` | Signing key alias |
@@ -129,6 +134,15 @@ Optional **GitHub Variable** (Settings → Variables):
 | Variable name | Purpose | Default |
 |---|---|---|
 | `SERVER_PORT` | Custom SSH port | `22` |
+
+Optional **GitHub Secret** (hardening; recommended for production):
+
+| Secret name | Purpose |
+|---|---|
+| `SERVER_KNOWN_HOSTS` | Pinned SSH host key(s) so the runner enforces `StrictHostKeyChecking=yes`. Generate with `ssh-keyscan -t rsa,ecdsa,ed25519 mr-edu.ertiqaa.site` and store the output. If not set, the pipeline falls back to the legacy permissive SSH settings so existing deployments keep working. |
+
+> The old `BACKEND_API_TOKEN` secret is **obsolete**. The pipeline now logs in automatically on every
+> run, so the token is temporary, job-scoped, masked in the logs, and never stored as a secret.
 
 ---
 
@@ -185,7 +199,8 @@ https://mr-edu.ertiqaa.site/storage/releases/app-v<VERSION_NAME>.apk
 
 | Method | Endpoint | Auth | Used by |
 |---|---|---|---|
-| `GET` | `/api/v1/app/releases/latest` | None | Pipeline (pre-check + verification) & Flutter client |
+| `POST` | `/api/v1/auth/login` | None (credentials in body) | Pipeline (obtain Access Token) |
+| `GET` | `/api/v1/app/releases/latest` | None | Pipeline (pre-check & verification) & Flutter client |
 | `POST` | `/api/v1/app/releases` | Bearer | Pipeline (publish) |
 | `GET` | `/api/v1/app/releases/latest/download` | None | Flutter client |
 
@@ -205,7 +220,9 @@ Base URL: `https://mr-edu.ertiqaa.site/api/v1`
 | `Release APK was not generated` | Build failed / plugin incompatibility; check build logs |
 | `Missing SSH secrets` | `SERVER_SSH_KEY`, `SERVER_HOST`, `SERVER_USER` not set |
 | `Uploaded APK not found on server` | SCP target path wrong or server user lacks write permission to `storage/app/public/releases` |
-| `Backend rejected the release publish` | Token invalid/expired, or `version_code` not unique / not increasing |
+| `Backend login failed`/`did not contain data.token` | `BACKEND_USERNAME`/`BACKEND_PASSWORD` are wrong, or the Backend login contract changed (endpoint/field) |
+| `Backend rejected the release publish` | The Backend returned non-2xx (other than 401). Inspect the returned body — e.g. `version_code` not unique/increasing, or the account lacks permission for `POST /app/releases` |
+| `Release publish failed after retry` | The Backend returned `401` a second time after re-login; the token still did not authenticate. Check the Backend login response and account permissions |
 | `version_name/version_code/file_name mismatch` | Backend didn't register what we sent; inspect the returned body |
 
 Check the Actions log tab of the failed run for `::error::` lines, which point to the exact step.
@@ -240,9 +257,16 @@ Flutter-friendly download + install package (e.g. `open_filex`). Do **not** use 
 ## Security notes
 
 - No secrets are stored in the repository or workflow files.
-- The keystore, passwords, SSH key, and Backend token are all referenced via
+- The keystore, passwords, SSH key, and Backend credentials are all referenced via
   `${{ secrets.* }}` / `${{ vars.* }}`.
+- The Backend Access Token is **generated per run** via `POST /auth/login`, masked
+  (`echo "::add-mask::…"`), kept only for the current job, and never committed or stored as a
+  GitHub Secret. There is no long-lived `BACKEND_API_TOKEN` to rotate.
 - The keystore is decoded inside the CI runner and deleted at the end of the job (runner is
   ephemeral).
 - The SSH private key is written to a temporary file with `chmod 600` and removed after use;
   it is never printed.
+- Recommended hardening: set `SERVER_KNOWN_HOSTS` (pinned host keys) so the runner verifies the
+  server's identity instead of `StrictHostKeyChecking=no`.
+- A final cleanup step removes the keystore, `keystore.properties`, changelog, and other temporary
+  artifacts even when a previous step failed (`if: always()`).
