@@ -16,6 +16,7 @@ concurrency:
 env:
   # Backend
   BACKEND_BASE_URL: 'https://mr-edu.ertiqaa.site/api/v1'
+
   # Server deploy location (no credentials here)
   SERVER_REMOTE_DIR: '/var/www/educational_platforms/mr-edu.ertiqaa.site/storage/app/public/releases'
 
@@ -31,6 +32,7 @@ jobs:
       apk_name: ${{ steps.apk.outputs.apk_name }}
 
     steps:
+
       # ------------------------------------------------------------------
       # Stage 1 - Checkout
       # ------------------------------------------------------------------
@@ -38,7 +40,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ------------------------------------------------------------------
-      # Stage 2 - Setup Java (project targets Java 17)
+      # Stage 2 - Setup Java
       # ------------------------------------------------------------------
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -48,12 +50,7 @@ jobs:
           cache: gradle
 
       # ------------------------------------------------------------------
-      # Stage 3 - Setup Flutter (channel stable, match project Dart/Flutter)
-      #
-      # NOTE: the repository does NOT pin an exact Flutter version. It only
-      # declares a Dart SDK constraint (>=3.11.5 <4.0.0 in pubspec.yaml). Any
-      # recent stable Flutter satisfies it, so we stay on `stable` and do not
-      # invent a specific version to pin.
+      # Stage 3 - Setup Flutter
       # ------------------------------------------------------------------
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -68,7 +65,7 @@ jobs:
         run: flutter pub get
 
       # ------------------------------------------------------------------
-      # Stage 5 - Read version from pubspec.yaml (single source of truth)
+      # Stage 5 - Read version from pubspec.yaml
       # ------------------------------------------------------------------
       - name: Read version
         id: version
@@ -76,8 +73,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Extract the version line: version: <name>+<code>
           version_line="$(grep -m1 -E '^version: ' pubspec.yaml | sed -E 's/^version:[[:space:]]*//')"
+
           if [[ -z "$version_line" ]]; then
             echo "::error::Could not find a 'version:' line in pubspec.yaml"
             exit 1
@@ -91,13 +88,11 @@ jobs:
             exit 1
           fi
 
-          # version_code must be numeric
           if ! [[ "$version_code" =~ ^[0-9]+$ ]]; then
             echo "::error::version_code '$version_code' is not a positive integer"
             exit 1
           fi
 
-          # version_name must be semantic (x.y.z)
           if ! [[ "$version_name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::version_name '$version_name' is not in X.Y.Z format"
             exit 1
@@ -105,17 +100,20 @@ jobs:
 
           echo "version_name=$version_name" >> "$GITHUB_OUTPUT"
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
+
           echo "VERSION_NAME=$version_name" >> "$GITHUB_ENV"
           echo "VERSION_CODE=$version_code" >> "$GITHUB_ENV"
+
           echo "Extracted version_name=$version_name version_code=$version_code"
 
       # ------------------------------------------------------------------
-      # Stage 6 - Read changelog for the current version from CHANGELOG.md
+      # Stage 6 - Read changelog
       # ------------------------------------------------------------------
       - name: Read changelog
         shell: bash
         run: |
           set -euo pipefail
+
           version_name="${{ steps.version.outputs.version_name }}"
 
           if [[ ! -f CHANGELOG.md ]]; then
@@ -123,7 +121,6 @@ jobs:
             exit 1
           fi
 
-          # Extract the section starting with exactly "## $version_name"
           changelog="$(awk -v v="## $version_name" '
             $0 == v { found=1; next }
             found && /^## / { exit }
@@ -132,19 +129,19 @@ jobs:
 
           if [[ -z "$changelog" ]]; then
             echo "::error::No changelog section found for version '$version_name' in CHANGELOG.md"
-            echo "::error::Add a section like:  ## $version_name  then bullet points below it."
+            echo "::error::Add a section like: ## $version_name"
             exit 1
           fi
 
-          # Persist to a file to safely carry the multiline value between steps
           printf '%s\n' "$changelog" > "$GITHUB_WORKSPACE/changelog.txt"
+
           echo "Changelog section for $version_name:"
           echo "-------------------------------"
           cat "$GITHUB_WORKSPACE/changelog.txt"
           echo "-------------------------------"
 
       # ------------------------------------------------------------------
-      # Stage 7 (pre) - Pre-check latest release (fail on duplicate/higher)
+      # Stage 7 - Pre-check latest release on Backend
       # ------------------------------------------------------------------
       - name: Pre-check latest release on Backend
         shell: bash
@@ -153,41 +150,52 @@ jobs:
         run: |
           set -uo pipefail
 
-          # Retry a few times so transient network issues do not abort wrongly;
-          # serious errors (5xx / unreachable) still fail the workflow loudly.
           http_code="000"
           body=""
+
           for attempt in 1 2 3; do
             resp="$(set +e; curl -sS -w '\n%{http_code}' \
-              -H 'Content-Type: application/json' -H 'Accept: application/json' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json' \
               "$BACKEND_BASE_URL/app/releases/latest"; set -e)" || true
+
             http_code="$(echo "$resp" | tail -n1)"
             body="$(echo "$resp" | sed '$d')"
 
             case "$http_code" in
-              200|404|204) break ;;
+              200|404|204)
+                break
+                ;;
             esac
-            if [[ "$attempt" -lt 3 ]]; then sleep 5; fi
+
+            if [[ "$attempt" -lt 3 ]]; then
+              sleep 5
+            fi
           done
 
           case "$http_code" in
             200)
               latest_code="$(echo "$body" | jq -r '[(.data // .) as $o | ($o.version_code // 0)] | first')"
+
               if [[ -z "$latest_code" ]]; then
-                echo "::error::Backend latest response did not include a numeric version_code. Body:"
+                echo "::error::Backend latest response did not include a numeric version_code."
                 echo "$body" | head -c 500 >&2
                 exit 1
               fi
+
               if [[ "$latest_code" -ge "$VERSION_CODE" ]]; then
                 echo "::error::Backend already has version_code=$latest_code which is >= this build's version_code=$VERSION_CODE."
-                echo "::error::Increment the version in pubspec.yaml before releasing to avoid a duplicate."
+                echo "::error::Increment the version in pubspec.yaml before releasing."
                 exit 1
               fi
+
               echo "Pre-check passed: latest backend code ($latest_code) < this build ($VERSION_CODE)"
               ;;
+
             404|204)
               echo "Backend has no releases yet (HTTP $http_code). Proceeding."
               ;;
+
             *)
               echo "::error::Could not reach/verify Backend latest release (HTTP $http_code after 3 attempts)."
               echo "$body" | head -c 500 >&2
@@ -196,7 +204,15 @@ jobs:
           esac
 
       # ------------------------------------------------------------------
-      # Stage 8 - Build signed release APK
+      # Stage 8 - Prepare signing keystore
+      #
+      # IMPORTANT:
+      # build.gradle.kts is inside android/app
+      #
+      # Therefore storeFile=upload-keystore.jks
+      # resolves to:
+      #
+      # android/app/upload-keystore.jks
       # ------------------------------------------------------------------
       - name: Prepare signing keystore
         shell: bash
@@ -208,21 +224,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ -z "$ANDROID_KEYSTORE_BASE64" || -z "$KEYSTORE_PASSWORD" || -z "$KEY_ALIAS" || -z "$KEY_PASSWORD" ]]; then
-            echo "::error::Missing one or more signing secrets (ANDROID_KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD)."
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" ||
+                -z "$KEYSTORE_PASSWORD" ||
+                -z "$KEY_ALIAS" ||
+                -z "$KEY_PASSWORD" ]]; then
+
+            echo "::error::Missing one or more signing secrets."
             exit 1
           fi
 
-          # Decode the keystore from base64 (never echo it)
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/android/upload-keystore.jks"
+          # Decode keystore directly into android/app
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d \
+            > "$GITHUB_WORKSPACE/android/app/upload-keystore.jks"
 
-          if [[ ! -s "$GITHUB_WORKSPACE/android/upload-keystore.jks" ]]; then
+          if [[ ! -s "$GITHUB_WORKSPACE/android/app/upload-keystore.jks" ]]; then
             echo "::error::Decoded keystore file is empty. Verify ANDROID_KEYSTORE_BASE64."
             exit 1
           fi
 
-          # Write keystore.properties (read by android/app/build.gradle.kts)
+          # keystore.properties is located in android/
           keystore_props="$GITHUB_WORKSPACE/android/keystore.properties"
+
           {
             echo "storeFile=upload-keystore.jks"
             echo "storePassword=$KEYSTORE_PASSWORD"
@@ -230,17 +252,23 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
           } > "$keystore_props"
 
-          echo "Keystore prepared at android/upload-keystore.jks (contents not printed)."
+          echo "Keystore prepared successfully."
+          echo "Keystore location: android/app/upload-keystore.jks"
 
+      # ------------------------------------------------------------------
+      # Stage 9 - Build signed release APK
+      # ------------------------------------------------------------------
       - name: Build release APK
         shell: bash
         run: |
           set -euo pipefail
+
           flutter build apk --release
+
           echo "Release APK built successfully."
 
       # ------------------------------------------------------------------
-      # Stage 9 - Locate and rename APK to the versioned filename
+      # Stage 10 - Locate and rename APK
       # ------------------------------------------------------------------
       - name: Locate and rename APK
         id: apk
@@ -249,26 +277,33 @@ jobs:
           VERSION_NAME: ${{ steps.version.outputs.version_name }}
         run: |
           set -euo pipefail
-          apk="$(find build/app/outputs/flutter-apk -name 'app-release.apk' -type f | head -n1)"
+
+          apk="$(find build/app/outputs/flutter-apk \
+            -name 'app-release.apk' \
+            -type f | head -n1)"
+
           if [[ -z "$apk" ]]; then
-            echo "::error::Release APK was not generated at build/app/outputs/flutter-apk/app-release.apk"
+            echo "::error::Release APK was not generated."
             exit 1
           fi
 
           apk_name="app-v${VERSION_NAME}.apk"
+
           cp "$apk" "$GITHUB_WORKSPACE/$apk_name"
+
           echo "APK_FILE=${GITHUB_WORKSPACE}/${apk_name}" >> "$GITHUB_ENV"
           echo "APK_NAME=$apk_name" >> "$GITHUB_ENV"
           echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
 
           if [[ ! -f "$GITHUB_WORKSPACE/$apk_name" ]]; then
-            echo "::error::Renamed APK missing at $GITHUB_WORKSPACE/$apk_name"
+            echo "::error::Renamed APK missing."
             exit 1
           fi
+
           ls -lh "$GITHUB_WORKSPACE/$apk_name"
 
       # ------------------------------------------------------------------
-      # Stage 10 - Upload APK to production server via SCP
+      # Stage 11 - Upload APK to server
       # ------------------------------------------------------------------
       - name: Upload APK to server
         shell: bash
@@ -283,39 +318,47 @@ jobs:
           set -euo pipefail
 
           if [[ -z "$SSH_KEY" || -z "$HOST" || -z "$USER" ]]; then
-            echo "::error::Missing SSH secrets (SERVER_SSH_KEY, SERVER_HOST, SERVER_USER)."
+            echo "::error::Missing SSH secrets."
             exit 1
           fi
 
           ssh_port="${PORT:-22}"
 
-          # Write the private key to a secure temp file (never printed)
           key_file="$(mktemp)"
+
           printf '%s\n' "$SSH_KEY" > "$key_file"
           chmod 600 "$key_file"
 
-          # Optional pinned known_hosts for production security.
-          # If SERVER_KNOWN_HOSTS is set we enforce StrictHostKeyChecking=yes;
-          # otherwise we keep the legacy permissive defaults (do not break the flow).
           hosts_file=""
+
           if [[ -n "${SERVER_KNOWN_HOSTS:-}" ]]; then
             hosts_file="$(mktemp)"
+
             printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
             chmod 600 "$hosts_file"
+
             ssh_extra=(-o "UserKnownHostsFile=$hosts_file")
           else
-            ssh_extra=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+            ssh_extra=(
+              -o StrictHostKeyChecking=no
+              -o UserKnownHostsFile=/dev/null
+            )
           fi
 
-          echo "Uploading $APK_NAME to $USER@$HOST:$SERVER_REMOTE_DIR/ (this may take a while)..."
-          scp "${ssh_extra[@]}" -P "$ssh_port" -i "$key_file" \
-            "$GITHUB_WORKSPACE/$APK_NAME" "${USER}@${HOST}:${SERVER_REMOTE_DIR}/${APK_NAME}"
+          echo "Uploading $APK_NAME to $USER@$HOST:$SERVER_REMOTE_DIR/..."
+
+          scp "${ssh_extra[@]}" \
+            -P "$ssh_port" \
+            -i "$key_file" \
+            "$GITHUB_WORKSPACE/$APK_NAME" \
+            "${USER}@${HOST}:${SERVER_REMOTE_DIR}/${APK_NAME}"
+
           echo "SCP upload completed."
 
           rm -f "$key_file" "$hosts_file"
 
       # ------------------------------------------------------------------
-      # Stage 11 - Verify uploaded file exists on the server via SSH
+      # Stage 12 - Verify uploaded APK
       # ------------------------------------------------------------------
       - name: Verify uploaded APK on server
         shell: bash
@@ -328,40 +371,50 @@ jobs:
           APK_NAME: ${{ steps.apk.outputs.apk_name }}
         run: |
           set -euo pipefail
+
           ssh_port="${PORT:-22}"
+
           key_file="$(mktemp)"
+
           printf '%s\n' "$SSH_KEY" > "$key_file"
           chmod 600 "$key_file"
 
           hosts_file=""
+
           if [[ -n "${SERVER_KNOWN_HOSTS:-}" ]]; then
             hosts_file="$(mktemp)"
+
             printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
             chmod 600 "$hosts_file"
+
             ssh_extra=(-o "UserKnownHostsFile=$hosts_file")
           else
-            ssh_extra=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+            ssh_extra=(
+              -o StrictHostKeyChecking=no
+              -o UserKnownHostsFile=/dev/null
+            )
           fi
 
           remote_path="${SERVER_REMOTE_DIR}/${APK_NAME}"
-          if ! ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
-            "${USER}@${HOST}" "test -f '${remote_path}'"; then
+
+          if ! ssh "${ssh_extra[@]}" \
+            -p "$ssh_port" \
+            -i "$key_file" \
+            "${USER}@${HOST}" \
+            "test -f '${remote_path}'"; then
+
             echo "::error::Uploaded APK not found on server at ${remote_path}"
+
             rm -f "$key_file" "$hosts_file"
             exit 1
           fi
+
           echo "Verified APK exists on server: ${remote_path}"
+
           rm -f "$key_file" "$hosts_file"
 
       # ------------------------------------------------------------------
-      # Stage 12 - Login to Backend (obtain a temporary job-scoped Access Token)
-      #
-      # Real Backend contract (from the Flutter app implementation):
-      #   POST $BACKEND_BASE_URL/auth/login
-      #   body: { "username": "...", "password": "..." }
-      #   response: { "success": bool, "message": "...", "data": { "token": "<TOKEN>", "user": {...} } }
-      #   -> Access Token field is `data.token`
-      #   -> subsequent requests authenticate via: Authorization: Bearer <TOKEN>
+      # Stage 13 - Login to Backend
       # ------------------------------------------------------------------
       - name: Login to Backend
         shell: bash
@@ -372,11 +425,10 @@ jobs:
           set -euo pipefail
 
           if [[ -z "$BACKEND_USERNAME" || -z "$BACKEND_PASSWORD" ]]; then
-            echo "::error::Missing Backend credentials secrets (BACKEND_USERNAME, BACKEND_PASSWORD)."
+            echo "::error::Missing Backend credentials secrets."
             exit 1
           fi
 
-          # Build the JSON login payload with jq so no credential interpolation hits logs.
           login_payload="$(jq -n \
             --arg u "$BACKEND_USERNAME" \
             --arg p "$BACKEND_PASSWORD" \
@@ -398,27 +450,22 @@ jobs:
             exit 1
           fi
 
-          # Access Token field is `data.token` (see LoginResponseModel in the app).
           token="$(echo "$body" | jq -r '.data.token // empty')"
+
           if [[ -z "$token" ]]; then
-            echo "::error::Login response did not contain data.token. Body:"
+            echo "::error::Login response did not contain data.token."
             echo "$body" | head -c 500 >&2
             exit 1
           fi
 
-          # Mask the token in all logs and keep it only for this job (never committed/stored).
           echo "::add-mask::$token"
+
           echo "BACKEND_ACCESS_TOKEN=$token" >> "$GITHUB_ENV"
 
-          echo "Logged in to Backend successfully (Access Token acquired and masked)."
+          echo "Logged in to Backend successfully."
 
       # ------------------------------------------------------------------
-      # Stage 13 - Publish release to Backend API (with single 401 retry)
-      #
-      # Flow: POST /app/releases with Bearer token.
-      #   - 2xx -> done
-      #   - 401 -> the token expired/invalid: log in again, retry ONCE
-      #   - any other HTTP error -> fail (no extra login attempts)
+      # Stage 14 - Publish release to Backend API
       # ------------------------------------------------------------------
       - name: Publish release to Backend
         id: publish
@@ -432,20 +479,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          changelog="$(cat "$GITHUB_WORKSPACE/changelog.txt")"
-
-          # Build a JSON payload safely (multiline changelog) using jq --rawfile
           changelog_file="$GITHUB_WORKSPACE/changelog.txt"
+
           payload="$(jq -n \
             --argjson vc "$VERSION_CODE" \
             --arg vn "$VERSION_NAME" \
             --arg cl "$(cat "$changelog_file")" \
             --arg fn "$APK_NAME" \
-            '{version_code: $vc, version_name: $vn, changelog: $cl, file_name: $fn}')"
+            '{
+              version_code: $vc,
+              version_name: $vn,
+              changelog: $cl,
+              file_name: $fn
+            }')"
 
-          # Re-login helper: prints nothing to stdout, stores token in global TOKEN.
           do_login() {
-            local login_payload resp code body parsed_token
+            local login_payload
+            local resp
+            local code
+            local body
+            local parsed_token
+
             login_payload="$(jq -n \
               --arg u "$BACKEND_USERNAME" \
               --arg p "$BACKEND_PASSWORD" \
@@ -462,30 +516,36 @@ jobs:
             body="$(echo "$resp" | sed '$d')"
 
             if [[ "$code" != "2"* ]]; then
-              echo "::error::Backend login failed (HTTP $code) while refreshing the token."
+              echo "::error::Backend login failed while refreshing token."
               echo "$body" | head -c 500 >&2
               return 1
             fi
 
             parsed_token="$(echo "$body" | jq -r '.data.token // empty')"
+
             if [[ -z "$parsed_token" ]]; then
               echo "::error::Refreshed login did not contain data.token."
               return 1
             fi
 
             echo "::add-mask::$parsed_token"
+
             TOKEN="$parsed_token"
           }
 
           TOKEN="${BACKEND_ACCESS_TOKEN:-}"
+
           if [[ -z "$TOKEN" ]]; then
-            echo "::error::No Backend Access Token available (did the 'Login to Backend' step run?)."
+            echo "::error::No Backend Access Token available."
             exit 1
           fi
 
           http_code=""
+
           for attempt in 1 2; do
-            echo "POSTing release to $BACKEND_BASE_URL/app/releases (attempt $attempt, token redacted)..."
+
+            echo "POSTing release to $BACKEND_BASE_URL/app/releases (attempt $attempt)..."
+
             response="$(curl -sS -w '\n%{http_code}' \
               -X POST \
               -H "Authorization: Bearer $TOKEN" \
@@ -503,18 +563,21 @@ jobs:
             fi
 
             if [[ "$http_code" == "401" && "$attempt" == "1" ]]; then
-              echo "::warning::Backend returned 401 Unauthorized (Access Token expired/invalid)."
+
+              echo "::warning::Backend returned 401 Unauthorized."
               echo "::warning::Logging in again and retrying once..."
+
               do_login
+
               continue
             fi
 
-            echo "::error::Backend rejected the release publish (HTTP $http_code). Full response body:"
+            echo "::error::Backend rejected the release publish (HTTP $http_code)."
             echo "::error::$body"
+
             exit 1
           done
 
-          # If both attempts failed, fail the workflow (no infinite retry).
           if [[ "$http_code" != "2"* ]]; then
             echo "::error::Release publish failed after retry (final HTTP $http_code)."
             exit 1
@@ -525,7 +588,7 @@ jobs:
           echo "::endgroup::"
 
       # ------------------------------------------------------------------
-      # Stage 14 - Verify latest release matches what we just published
+      # Stage 15 - Verify latest release
       # ------------------------------------------------------------------
       - name: Verify latest release on Backend
         shell: bash
@@ -537,9 +600,14 @@ jobs:
           set -euo pipefail
 
           for attempt in 1 2 3; do
+
             echo "Verification attempt $attempt of 3..."
-            resp="$(curl -sS -w '\n%{http_code}' -H 'Content-Type: application/json' -H 'Accept: application/json' \
+
+            resp="$(curl -sS -w '\n%{http_code}' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json' \
               "$BACKEND_BASE_URL/app/releases/latest")"
+
             code="$(echo "$resp" | tail -n1)"
             body="$(echo "$resp" | sed '$d')"
 
@@ -547,19 +615,26 @@ jobs:
               echo "$body" > "$GITHUB_WORKSPACE/latest.json"
               break
             fi
+
             if [[ "$attempt" == "3" ]]; then
-              echo "::error::Backend latest endpoint did not return HTTP 200 after 3 attempts (last HTTP $code)."
+              echo "::error::Backend latest endpoint did not return HTTP 200 after 3 attempts."
               echo "::error::$body"
               exit 1
             fi
+
             sleep 5
           done
 
           latest="$GITHUB_WORKSPACE/latest.json"
 
-          # Tolerant parse: values may be top-level or nested under data.*.
-          # jq emits a single TSV line so `read -r a b c` decodes it reliably.
-          row="$(jq -r '[( .data // . ) as $o | ($o.version_code // ""), ($o.version_name // ""), ($o.file_name // "")] | @tsv' "$latest")"
+          row="$(jq -r '
+            [( .data // . ) as $o |
+            ($o.version_code // ""),
+            ($o.version_name // ""),
+            ($o.file_name // "")] |
+            @tsv
+          ' "$latest")"
+
           IFS=$'\t' read -r got_code got_name got_file <<< "$row"
 
           exp_code="$VERSION_CODE"
@@ -567,46 +642,70 @@ jobs:
           exp_file="$APK_NAME"
 
           ok=true
-          if [[ "$got_code" != "$exp_code" ]]; then echo "::error::version_code mismatch: expected $exp_code, got $got_code"; ok=false; fi
-          if [[ "$got_name" != "$exp_name" ]]; then echo "::error::version_name mismatch: expected $exp_name, got $got_name"; ok=false; fi
-          if [[ "$got_file" != "$exp_file" ]]; then echo "::error::file_name mismatch: expected $exp_file, got $got_file"; ok=false; fi
+
+          if [[ "$got_code" != "$exp_code" ]]; then
+            echo "::error::version_code mismatch: expected $exp_code, got $got_code"
+            ok=false
+          fi
+
+          if [[ "$got_name" != "$exp_name" ]]; then
+            echo "::error::version_name mismatch: expected $exp_name, got $got_name"
+            ok=false
+          fi
+
+          if [[ "$got_file" != "$exp_file" ]]; then
+            echo "::error::file_name mismatch: expected $exp_file, got $got_file"
+            ok=false
+          fi
+
           if [[ "$ok" != true ]]; then
             echo "Returned latest release:"
             cat "$latest"
             exit 1
           fi
+
           echo "Verified latest release matches published release:"
-          echo "  version_code=$got_code version_name=$got_name file_name=$got_file"
+          echo "version_code=$got_code"
+          echo "version_name=$got_name"
+          echo "file_name=$got_file"
 
       # ------------------------------------------------------------------
-      # Stage 15 - (Optional) Verify download endpoint is reachable (HEAD)
+      # Stage 16 - Verify download endpoint
       # ------------------------------------------------------------------
       - name: Verify download endpoint (HEAD)
         continue-on-error: true
         shell: bash
         run: |
           set -e
-          # HEAD avoids downloading the large APK; tolerate servers that reject HEAD.
-          code="$(curl -sS -o /dev/null -w '%{http_code}' --head "$BACKEND_BASE_URL/app/releases/latest/download")"
+
+          code="$(curl -sS \
+            -o /dev/null \
+            -w '%{http_code}' \
+            --head \
+            "$BACKEND_BASE_URL/app/releases/latest/download")"
+
           echo "Download endpoint HEAD returned HTTP $code"
+
           if [[ "$code" == "000" ]]; then
-            echo "::warning::Could not reach download endpoint (HEAD). Direct file URL was already verified on the server."
+            echo "::warning::Could not reach download endpoint."
           else
             echo "Download endpoint reachable (HTTP $code)."
           fi
 
       # ------------------------------------------------------------------
-      # Stage 16 - Cleanup temporary build/auth material (always runs)
+      # Stage 17 - Cleanup
       # ------------------------------------------------------------------
       - name: Clean up temporary files
         if: always()
         shell: bash
         run: |
           rm -f \
-            "$GITHUB_WORKSPACE/android/upload-keystore.jks" \
+            "$GITHUB_WORKSPACE/android/app/upload-keystore.jks" \
             "$GITHUB_WORKSPACE/android/keystore.properties" \
             "$GITHUB_WORKSPACE/changelog.txt" \
             "$GITHUB_WORKSPACE/latest.json" \
             "$GITHUB_WORKSPACE/publish_response.json" \
             "$GITHUB_WORKSPACE"/app-v*.apk
+
           echo "Temporary files cleaned up."
+
