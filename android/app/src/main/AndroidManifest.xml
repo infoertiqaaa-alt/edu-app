@@ -1,5 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!--
+        مطلوب لتفعيل "Install unknown apps" واستدعاء Android Package Installer
+        عند تثبيت الـ APK الذي تم تنزيله عبر ميزة التحديث داخل التطبيق.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:label="MR"

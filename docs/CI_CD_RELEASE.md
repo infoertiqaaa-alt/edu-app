@@ -231,26 +231,43 @@ Check the Actions log tab of the failed run for `::error::` lines, which point t
 
 ## 10. How the Flutter client detects updates
 
-The client-side update feature (separate from CI/CD publishing) is **architected but not yet
-fully implemented**. The client responsibilities are:
+The client-side update feature lives in `lib/features/update/` and runs as a mandatory
+(gated) update on every app startup. The startup flow is:
 
-1. Call `GET /api/v1/app/releases/latest` (no auth).
-2. Read the installed app version code (e.g. with `package_info_plus`).
-3. Compare: `installedVersionCode < latestVersionCode` → update available.
-4. Show an update UI; on "Update", download from
-   `GET /api/v1/app/releases/latest/download`, show progress, save locally, and launch the
-   Android package installer.
+1. `SplashScreen` (`lib/features/auth/presentation/screens/splash_screen.dart`) starts the
+   existing auto-login check **and** `UpdateCubit.checkForUpdate()` together.
+2. `UpdateCubit` reads the **installed** `version_code` at runtime with `package_info_plus`
+   (never hard-coded), then calls `GET /api/v1/app/releases/latest`.
+3. Comparison rule (authoritative): `latest.version_code > installed.version_code`
+   → **mandatory update**. Equal or lower → normal flow (no downgrade).
+4. If an update is required, `MandatoryUpdateView` is shown. It cannot be dismissed:
+   no X, no Cancel/Skip/Later, back button blocked (`PopScope`), and no navigation
+   away from Splash while required.
+5. "تحديث الآن" downloads the APK via `GET /api/v1/app/releases/latest/download`
+   (`data.file_url` is treated as metadata only and is **not** the download source),
+   shows progress, saves it under the app support directory, verifies the ZIP/APK magic
+   bytes, then opens the Android package installer via `open_filex`.
+6. The dialog blocks with a Retry action if the download fails. If the installer is
+   cancelled, the app still runs on the old version and the next startup detects
+   `installed < latest` again, so the update cannot be permanently bypassed.
 
-The relevant endpoint constants already exist in `lib/core/constants/api_constants.dart`:
+Key files:
+- `lib/features/update/data/datasources/release_remote_data_source.dart`
+- `lib/features/update/data/datasources/apk_installer.dart` (open_filex wrapper)
+- `lib/features/update/data/models/release_model.dart`
+- `lib/features/update/domain/repositories/update_repository.dart`
+- `lib/features/update/domain/usecases/get_latest_release.dart`
+- `lib/features/update/domain/usecases/download_latest_apk.dart`
+- `lib/features/update/domain/logic/update_comparator.dart` (pure comparison rule)
+- `lib/features/update/presentation/cubit/update_cubit.dart`
+- `lib/features/update/presentation/widgets/mandatory_update_view.dart`
 
-```dart
-static const String latestRelease = '/app/releases/latest';
-static const String latestReleaseDownload = '/app/releases/latest/download';
-```
+Android requirements (already configured):
+- `REQUEST_INSTALL_PACKAGES` permission in `android/app/src/main/AndroidManifest.xml`.
+- `open_filex` merges its own `FileProvider` (covers `files-path`/`cache-path`), so no extra
+  provider declaration is required.
 
-The recommended flow uses `package_info_plus` (for the installed version) plus a
-Flutter-friendly download + install package (e.g. `open_filex`). Do **not** use raw shell
-`pm install` commands to install the APK; use a proper Android-compatible mechanism.
+Dependencies: `package_info_plus`, `open_filex`, `path_provider` (direct).
 
 ---
 

@@ -25,6 +25,13 @@ import '../../features/lessons/presentation/cubit/lesson_notes_cubit.dart';
 import '../../features/lessons/data/datasources/notes_database.dart';
 import '../../features/lessons/data/repositories/lesson_notes_repository_impl.dart';
 import '../../features/lessons/domain/repositories/lesson_notes_repository.dart';
+import '../../features/update/data/datasources/release_remote_data_source.dart';
+import '../../features/update/data/datasources/apk_installer.dart';
+import '../../features/update/data/repositories/update_repository_impl.dart';
+import '../../features/update/domain/repositories/update_repository.dart';
+import '../../features/update/domain/usecases/get_latest_release.dart';
+import '../../features/update/domain/usecases/download_latest_apk.dart';
+import '../../features/update/presentation/cubit/update_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -82,4 +89,24 @@ Future<void> setupServiceLocator() async {
     () => LessonNotesRepositoryImpl(sl()),
   );
   sl.registerFactory<LessonNotesCubit>(() => LessonNotesCubit(sl()));
+
+  // Update Feature Registration
+  sl.registerLazySingleton<ReleaseRemoteDataSource>(
+    () => ReleaseRemoteDataSourceImpl(sl<DioClient>().dio),
+  );
+  sl.registerLazySingleton<UpdateRepository>(() => UpdateRepositoryImpl(sl()));
+  sl.registerLazySingleton<ApkInstaller>(() => ApkInstaller());
+  sl.registerFactory<GetLatestRelease>(
+    () => GetLatestRelease(sl<UpdateRepository>()),
+  );
+  sl.registerFactory<DownloadLatestApk>(
+    () => DownloadLatestApk(sl<UpdateRepository>()),
+  );
+  sl.registerFactory<UpdateCubit>(
+    () => UpdateCubit(
+      sl<GetLatestRelease>(),
+      sl<DownloadLatestApk>(),
+      sl<ApkInstaller>(),
+    ),
+  );
 }
