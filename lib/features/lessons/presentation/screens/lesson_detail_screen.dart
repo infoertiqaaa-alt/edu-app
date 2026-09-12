@@ -14,6 +14,7 @@ import '../cubit/lesson_detail_cubit.dart';
 import '../cubit/lesson_detail_state.dart';
 import '../cubit/lesson_notes_cubit.dart';
 import '../cubit/lesson_notes_state.dart';
+import '../widgets/lesson_video_controls.dart';
 
 class LessonDetailScreen extends StatelessWidget {
   final int lessonId;
@@ -196,6 +197,10 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _controller = YoutubePlayerController.fromVideoId(
       videoId: videoId,
       autoPlay: false,
+      params: const YoutubePlayerParams(
+        strictRelatedVideos: true,
+        loop: true,
+      ),
     );
     _controller.setFullScreenListener(_onFullScreenChanged);
   }
@@ -240,9 +245,10 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         controller: _controller,
         builder: (context, player, controller) {
           return Stack(
-            alignment: Alignment.center,
+            fit: StackFit.expand,
             children: [
               player,
+              LessonVideoControls(controller: controller),
               if (_showThumbnail && !_isFullScreen)
                 Positioned.fill(
                   child: GestureDetector(
