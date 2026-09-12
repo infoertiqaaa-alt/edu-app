@@ -46,19 +46,23 @@ Example: `version: 2.1.0+2` → `app-v2.1.0.apk`
 7. **Pre-check Backend** — calls `GET /app/releases/latest`; if the Backend already has a release
    with a `version_code >=` this build's, the workflow **fails** (prevents duplicates/overwrites).
 8. **Build signed APK** — decodes the keystore from a GitHub Secret and runs
-   `flutter build apk --release`.
-9. **Rename APK** — copies to `app-v${version_name}.apk` and fails if the APK was not produced.
-10. **Upload via SCP** — uploads the APK to the production server releases directory.
-11. **Verify on server** — SSH `test -f` to confirm the file exists remotely.
-12. **Login to Backend** — posts `BACKEND_USERNAME`/`BACKEND_PASSWORD` to `POST /auth/login`, reads the
+   `flutter build apk --release`. The Gradle release build type uses **only** the Production
+   signing config and **never** falls back to the Debug keystore.
+9. **Verify APK signature** — uses `apksigner` + `keytool` to compare the certificate SHA-256 of
+   the built APK against the keystore decoded from `ANDROID_KEYSTORE_BASE64`; fails the workflow
+   if they differ (e.g. a Debug-signing fallback must never be shipped).
+10. **Rename APK** — copies to `app-v${version_name}.apk` and fails if the APK was not produced.
+11. **Upload via SCP** — uploads the APK to the production server releases directory.
+12. **Verify on server** — SSH `test -f` to confirm the file exists remotely.
+13. **Login to Backend** — posts `BACKEND_USERNAME`/`BACKEND_PASSWORD` to `POST /auth/login`, reads the
     Access Token from `data.token`, masks it, and keeps it only for the current job (never stored).
-13. **Publish release** — `POST /app/releases` (Bearer token) with `version_code`, `version_name`,
+14. **Publish release** — `POST /app/releases` (Bearer token) with `version_code`, `version_name`,
     `changelog`, and `file_name`. If the Backend returns `401 Unauthorized`, the pipeline logs in
     again and retries **once**; any other non-2xx response fails the run. There is no infinite retry.
-14. **Verify latest release** — `GET /app/releases/latest` and asserts the returned release matches
+15. **Verify latest release** — `GET /app/releases/latest` and asserts the returned release matches
     what we just published (`version_code`, `version_name`, `file_name`); fails on mismatch.
-15. **Download endpoint check (optional)** — a lightweight `HEAD` against the download endpoint.
-16. **Cleanup** — removes the keystore, `keystore.properties`, changelog, and any temporary files.
+16. **Download endpoint check (optional)** — a lightweight `HEAD` against the download endpoint.
+17. **Cleanup** — removes the keystore, `keystore.properties`, changelog, and any temporary files.
 
 Any failed step aborts the workflow so a partial release is never reported as successful.
 
@@ -157,6 +161,24 @@ keytool -genkey -v \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
+> **CRITICAL — only ONE keystore may ever be used.** A new APK can be installed over an existing
+> app only when BOTH have the same `applicationId` **and** the exact same signing certificate.
+> Every APK you ever distribute (Firebase App Distribution, GitHub Actions, manual installs, ...)
+> must be signed with this same Production keystore. Creating a second keystore, or shipping an APK
+> signed with the Debug keystore (the old `flutter build apk --release` template fallback), breaks
+> updates with:
+>
+> ```
+> App not installed because the package conflicts with an existing package.
+> ```
+>
+> Since this fix, `android/app/build.gradle.kts` **forbids** Debug signing for Release builds: if
+> the Production keystore is missing, the Release build fails instead of silently signing with the
+> Debug key. The CI workflow additionally rejects any released APK whose certificate does not match
+> the keystore stored in `ANDROID_KEYSTORE_BASE64`. If you previously distributed an APK signed with
+> a *different* certificate (e.g. the Debug keystore), a **one-time manual uninstall** of that old
+> build is unavoidable — Android will never let a differently-signed APK overwrite it.
+
 Then encode it as base64 and store it in the `ANDROID_KEYSTORE_BASE64` secret:
 
 **Windows (PowerShell):**
@@ -217,6 +239,9 @@ Base URL: `https://mr-edu.ertiqaa.site/api/v1`
 | `Backend already has version_code ... >= this build` | Version was not bumped; increment `version_code` |
 | `Missing one or more signing secrets` | `ANDROID_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` not set |
 | `Decoded keystore file is empty` | `ANDROID_KEYSTORE_BASE64` is not a valid base64 keystore |
+| `Release APK is NOT signed with the Production keystore` | The built APK's certificate does not match the keystore from `ANDROID_KEYSTORE_BASE64` — e.g. Debug-signing fallback or a mismatched keystore was used. The workflow fails before publishing. |
+| `Release build requires the Production signing keystore` (local build) | Release builds no longer fall back to Debug signing. Create `android/keystore.properties` with `storeFile`, `storePassword`, `keyAlias`, `keyPassword` pointing to your Production keystore. |
+| `App not installed because the package conflicts with an existing package` | The new APK and the installed app have the same `applicationId` but **different signing certificates**. Compare their certs: `keytool -printcert -jarfile <apk>`. Every distributed APK must be signed with the same Production keystore (see §6). |
 | `Release APK was not generated` | Build failed / plugin incompatibility; check build logs |
 | `Missing SSH secrets` | `SERVER_SSH_KEY`, `SERVER_HOST`, `SERVER_USER` not set |
 | `Uploaded APK not found on server` | SCP target path wrong or server user lacks write permission to `storage/app/public/releases` |

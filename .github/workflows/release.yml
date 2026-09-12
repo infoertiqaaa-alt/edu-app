@@ -268,6 +268,67 @@ jobs:
           echo "Release APK built successfully."
 
       # ------------------------------------------------------------------
+      # Stage 9b - Verify the release APK is signed with the Production keystore
+      #
+      # Guards against a Debug-signing fallback: the certificate used to sign
+      # the APK MUST be the same certificate stored in ANDROID_KEYSTORE_BASE64.
+      # ------------------------------------------------------------------
+      - name: Verify APK signature matches Production keystore
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+
+          apk="$GITHUB_WORKSPACE/build/app/outputs/flutter-apk/app-release.apk"
+          keystore="$GITHUB_WORKSPACE/android/app/upload-keystore.jks"
+
+          test -f "$apk" || { echo "::error::Release APK not found."; exit 1; }
+          test -f "$keystore" || { echo "::error::Keystore not found."; exit 1; }
+
+          # Locate apksigner (Android SDK build-tools).
+          apksigner=""
+          for sdk in "$ANDROID_SDK_ROOT" "$ANDROID_HOME" "$ANDROID_SDK_HOME"; do
+            if [[ -d "${sdk}/build-tools" ]]; then
+              apksigner="$(find "${sdk}/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -n1)"
+              [[ -n "$apksigner" ]] && break
+            fi
+          done
+
+          test -n "$apksigner" || { echo "::error::apksigner not found in Android SDK build-tools."; exit 1; }
+
+          expected="$(
+            keytool -list -v \
+              -keystore "$keystore" \
+              -alias "$KEY_ALIAS" \
+              -storepass "$KEYSTORE_PASSWORD" 2>/dev/null |
+            sed -nE 's/^[[:space:]]*SHA256:[[:space:]]*([0-9A-Fa-f:]+)/\1/p' |
+            head -n1 | tr -d ':' | tr 'A-F' 'a-f'
+          )"
+
+          actual="$(
+            "$apksigner" verify --print-certs "$apk" 2>/dev/null |
+            sed -nE 's/.*certificate SHA-256 digest: ([0-9a-f]{64}).*/\1/p' |
+            head -n1
+          )"
+
+          if [[ -z "$expected" || -z "$actual" ]]; then
+            echo "::error::Could not read signing certificate(s) (expected='$expected' actual='$actual')."
+            exit 1
+          fi
+
+          if [[ "$expected" != "$actual" ]]; then
+            echo "::error::Release APK is NOT signed with the Production keystore."
+            echo "::error::Expected SHA-256: $expected"
+            echo "::error::Actual SHA-256:   $actual"
+            echo "::error::The APK must be signed with the keystore from ANDROID_KEYSTORE_BASE64 only."
+            exit 1
+          fi
+
+          echo "Verified: release APK signed with the Production keystore (SHA-256: $actual)."
+
+      # ------------------------------------------------------------------
       # Stage 10 - Locate and rename APK
       # ------------------------------------------------------------------
       - name: Locate and rename APK
