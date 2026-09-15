@@ -288,10 +288,14 @@ jobs:
           test -f "$keystore" || { echo "::error::Keystore not found."; exit 1; }
 
           # Locate apksigner (Android SDK build-tools).
+          # GitHub-hosted runners provide ANDROID_HOME / ANDROID_SDK_ROOT
+          # (ANDROID_SDK_HOME is NOT a standard runner variable, so it must not
+          # be referenced with `set -u`). Use safe default expansions so the
+          # script stays compatible with `set -euo pipefail`.
           apksigner=""
-          for sdk in "$ANDROID_SDK_ROOT" "$ANDROID_HOME" "$ANDROID_SDK_HOME"; do
-            if [[ -d "${sdk}/build-tools" ]]; then
-              apksigner="$(find "${sdk}/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -n1)"
+          for sdk in "${ANDROID_SDK_ROOT:-}" "${ANDROID_HOME:-}"; do
+            if [[ -n "$sdk" && -d "$sdk/build-tools" ]]; then
+              apksigner="$(find "$sdk/build-tools" -name apksigner -type f 2>/dev/null | sort -V | tail -n1)"
               [[ -n "$apksigner" ]] && break
             fi
           done
