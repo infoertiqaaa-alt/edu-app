@@ -167,9 +167,9 @@ class _LessonVideoControlsState extends State<LessonVideoControls> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _SkipButton(
-                label: '-10m',
+                label: '-10s',
                 icon: Icons.fast_rewind_rounded,
-                onTap: () => _seekBy(const Duration(minutes: -10)),
+                onTap: () => _seekBy(const Duration(seconds: -10)),
               ),
               SizedBox(width: 14.w),
               _PlayPauseButton(
@@ -178,9 +178,9 @@ class _LessonVideoControlsState extends State<LessonVideoControls> {
               ),
               SizedBox(width: 14.w),
               _SkipButton(
-                label: '+10m',
+                label: '+10s',
                 icon: Icons.fast_forward_rounded,
-                onTap: () => _seekBy(const Duration(minutes: 10)),
+                onTap: () => _seekBy(const Duration(seconds: -10)),
               ),
             ],
           ),

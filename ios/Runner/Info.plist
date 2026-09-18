@@ -4,6 +4,10 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<key>NSCameraUsageDescription</key>
+		<string>يتم استخدام الكاميرا لمسح QR رمز الطالب من الهاتف أو البطاقة.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>يتم استخدام مكتبة الصور لاختيار صورة تحتوي على رمز QR لمسحها.</string>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
