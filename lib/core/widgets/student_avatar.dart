@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/api_constants.dart';
 
 class StudentAvatar extends StatelessWidget {
   final String? imageUrl;
@@ -12,7 +13,7 @@ class StudentAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = imageUrl?.trim();
+    final url = ApiConstants.resolveImageUrl(imageUrl);
     final hasImage = url != null && url.isNotEmpty;
     final fallback = Icon(
       Icons.person,

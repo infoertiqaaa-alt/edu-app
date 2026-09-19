@@ -180,7 +180,7 @@ class _LessonVideoControlsState extends State<LessonVideoControls> {
               _SkipButton(
                 label: '+10s',
                 icon: Icons.fast_forward_rounded,
-                onTap: () => _seekBy(const Duration(seconds: -10)),
+                onTap: () => _seekBy(const Duration(seconds: 10)),
               ),
             ],
           ),

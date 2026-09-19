@@ -3,6 +3,19 @@ class ApiConstants {
 
   static const String baseUrl = 'https://mr-edu.ertiqaa.site/api/v1';
 
+  static const String storageBaseUrl = 'https://mr-edu.ertiqaa.site/storage';
+
+  /// بتحوّل المسار النسبي اللي بترجعه الـ API (زي `student-profiles/x.jpg`)
+  /// لـ URL كامل جاهز للعرض، وبتسيب الـ URLs الكاملة زي ما هي.
+  static String? resolveImageUrl(String? path) {
+    final trimmed = path?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    return '$storageBaseUrl/${trimmed.replaceFirst(RegExp(r'^/+'), '')}';
+  }
+
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);
 
