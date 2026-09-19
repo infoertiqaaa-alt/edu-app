@@ -14,6 +14,7 @@ import '../cubit/lesson_detail_cubit.dart';
 import '../cubit/lesson_detail_state.dart';
 import '../cubit/lesson_notes_cubit.dart';
 import '../cubit/lesson_notes_state.dart';
+import '../widgets/add_note_dialog.dart';
 import '../widgets/lesson_video_controls.dart';
 
 class LessonDetailScreen extends StatelessWidget {
@@ -705,45 +706,16 @@ class _NotesTabBody extends StatelessWidget {
     final controller = TextEditingController(text: note?.content ?? '');
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(note == null ? 'إضافة ملاحظة' : 'تعديل الملاحظة',
-            style: GoogleFonts.cairo()),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 5,
-          maxLength: 500,
-          decoration: InputDecoration(
-            hintText: 'اكتب ملاحظتك هنا...',
-            hintStyle: GoogleFonts.cairo(),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => dialogContext.pop(),
-            child: Text('إلغاء', style: GoogleFonts.cairo()),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final content = controller.text.trim();
-              if (content.isEmpty) return;
-              if (note == null) {
-                cubit.addNote(lessonId, content);
-              } else {
-                cubit.updateNote(note, content);
-              }
-              dialogContext.pop();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: Text('حفظ', style: GoogleFonts.cairo()),
-          ),
-        ],
+      builder: (dialogContext) => AddNoteDialog(
+        controller: controller,
+        isEditing: note != null,
+        onSaved: (content) {
+          if (note == null) {
+            cubit.addNote(lessonId, content);
+          } else {
+            cubit.updateNote(note, content);
+          }
+        },
       ),
     );
   }

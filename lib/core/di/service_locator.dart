@@ -30,7 +30,7 @@ import '../../features/update/data/datasources/apk_installer.dart';
 import '../../features/update/data/repositories/update_repository_impl.dart';
 import '../../features/update/domain/repositories/update_repository.dart';
 import '../../features/update/domain/usecases/get_latest_release.dart';
-import '../../features/update/domain/usecases/download_latest_apk.dart';
+import '../../features/update/domain/usecases/download_release_apk.dart';
 import '../../features/update/presentation/cubit/update_cubit.dart';
 
 final sl = GetIt.instance;
@@ -99,13 +99,13 @@ Future<void> setupServiceLocator() async {
   sl.registerFactory<GetLatestRelease>(
     () => GetLatestRelease(sl<UpdateRepository>()),
   );
-  sl.registerFactory<DownloadLatestApk>(
-    () => DownloadLatestApk(sl<UpdateRepository>()),
+  sl.registerFactory<DownloadReleaseApk>(
+    () => DownloadReleaseApk(sl<UpdateRepository>()),
   );
   sl.registerFactory<UpdateCubit>(
     () => UpdateCubit(
       sl<GetLatestRelease>(),
-      sl<DownloadLatestApk>(),
+      sl<DownloadReleaseApk>(),
       sl<ApkInstaller>(),
     ),
   );

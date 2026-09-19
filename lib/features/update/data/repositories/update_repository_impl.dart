@@ -20,12 +20,14 @@ class UpdateRepositoryImpl implements UpdateRepository {
   }
 
   @override
-  Future<Either<Failure, void>> downloadLatestApk(
+  Future<Either<Failure, void>> downloadReleaseApk(
+    String url,
     String savePath, {
     void Function(int received, int total)? onProgress,
   }) async {
     try {
-      await remoteDataSource.downloadLatestApk(
+      await remoteDataSource.downloadReleaseApk(
+        url,
         savePath,
         onReceiveProgress: onProgress,
       );

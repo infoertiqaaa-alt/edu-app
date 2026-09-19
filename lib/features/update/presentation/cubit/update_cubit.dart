@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mr/core/constants/api_constants.dart';
 import 'package:mr/core/network/network_exceptions.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
@@ -9,20 +11,20 @@ import 'package:path_provider/path_provider.dart';
 import '../../data/datasources/apk_installer.dart';
 import '../../data/models/release_model.dart';
 import '../../domain/logic/update_comparator.dart';
-import '../../domain/usecases/download_latest_apk.dart';
+import '../../domain/usecases/download_release_apk.dart';
 import '../../domain/usecases/get_latest_release.dart';
 import 'update_state.dart';
 
 class UpdateCubit extends Cubit<UpdateState> {
   final GetLatestRelease _getLatestRelease;
-  final DownloadLatestApk _downloadLatestApk;
+  final DownloadReleaseApk _downloadReleaseApk;
   final ApkInstaller _apkInstaller;
 
   ReleaseModel? _currentRelease;
 
   UpdateCubit(
     this._getLatestRelease,
-    this._downloadLatestApk,
+    this._downloadReleaseApk,
     this._apkInstaller,
   ) : super(UpdateInitial());
 
@@ -58,10 +60,16 @@ class UpdateCubit extends Cubit<UpdateState> {
       return;
     }
 
-    if (UpdateComparator.isUpdateRequired(
+    final updateRequired = UpdateComparator.isUpdateRequired(
       installedVersionCode: installedVersionCode,
       backendVersionCode: release.versionCode,
-    )) {
+    );
+    _log(
+      'installed=$installedVersionCode backend=${release.versionCode} '
+      'updateRequired=$updateRequired',
+    );
+
+    if (updateRequired) {
       _currentRelease = release;
       emit(UpdateRequired(release));
     } else {
@@ -71,23 +79,39 @@ class UpdateCubit extends Cubit<UpdateState> {
 
   /// يبدأ التنزيل ثم يفتح المثبّت.
   ///
-  /// لو الملف نزل من قبل وموجود سليم (مثلًا بعد فشل فتح المثبّت) هيفتحه
-  /// مباشرة بدل ما يعيد تنزيل 90+ ميجا.
+  /// القاعدة الأساسية: ممنوع نثبّت أي APK لمجرد إن ملف موجود على الجهاز.
+  /// الكاش اللي بنستخدمه لازم يكون مرهون بنسخة الـ release المطلوبة نفسها
+  /// (اسم الملف فيه version_code) وبالتالي ملف نسخة تانية أو الملف العام
+  /// القديم `app-update.apk` مش هيتم اعتباره صالح أبدًا.
   Future<void> startUpdate() async {
     final release = _currentRelease;
-    if (release == null) return;
+    final versionCode = release?.versionCode;
+    if (release == null || versionCode == null) return;
 
-    final apkPath = await _resolveApkPath();
+    // شيل أي ملفات APK قديمة (العام القديم أو نسخ لنسخ مختلفة) قبل ما نقرر.
+    await _cleanupStaleApks(versionCode);
+
+    final apkPath = await _resolveApkPath(release);
     final file = File(apkPath);
 
+    // الملف بالاسم المرتبط بنفس version_code = صالح لإعادة الاستخدام.
     if (file.existsSync() && file.lengthSync() > 0) {
+      _log('reusing cached release=$versionCode path=$apkPath');
       await _openInstaller(release, apkPath);
       return;
     }
 
+    // ننزّل نفس النسخة اللي اتقارنت (file_url) مش "أحدث نسخة" عامة؛
+    // ولما يكون file_url مش موجود بنوقع على endpoint الإصدار اللي اتقارن.
+    final downloadUrl = release.fileUrl.isNotEmpty
+        ? release.fileUrl
+        : ApiConstants.latestReleaseDownload;
+
+    _log('downloading release=$versionCode from $downloadUrl');
     emit(UpdateDownloading(release));
 
-    final result = await _downloadLatestApk(
+    final result = await _downloadReleaseApk(
+      downloadUrl,
       apkPath,
       onProgress: (received, total) {
         if (!isClosed) {
@@ -104,13 +128,17 @@ class UpdateCubit extends Cubit<UpdateState> {
 
     result.fold(
       (failure) {
+        // فشل التنزيل → ممنوع نثبّت أي ملف قديم موجود. نظهر الخطأ وبس.
+        _log('download failed release=$versionCode');
         _deleteSafely(file);
         emit(UpdateDownloadFailed(release, failure.message));
       },
       (_) async {
         if (file.existsSync() && file.lengthSync() > 0) {
+          _log('download completed release=$versionCode path=$apkPath');
           await _openInstaller(release, apkPath);
         } else {
+          _log('downloaded file invalid release=$versionCode');
           _deleteSafely(file);
           emit(
             UpdateDownloadFailed(
@@ -124,6 +152,7 @@ class UpdateCubit extends Cubit<UpdateState> {
   }
 
   Future<void> _openInstaller(ReleaseModel release, String apkPath) async {
+    _log('installing release=${release.versionCode} path=$apkPath');
     emit(UpdateInstallStarted(release, apkPath));
     try {
       await _apkInstaller.install(apkPath);
@@ -148,11 +177,43 @@ class UpdateCubit extends Cubit<UpdateState> {
     }
   }
 
-  Future<String> _resolveApkPath() async {
+  /// ملف APK مربوط بالنسخة المطلوبة: `updates/app-update-<versionCode>.apk`.
+  Future<String> _resolveApkPath(ReleaseModel release) async {
     final supportDir = await getApplicationSupportDirectory();
     final updatesDir = p.join(supportDir.path, 'updates');
     await Directory(updatesDir).create(recursive: true);
-    return p.join(updatesDir, 'app-update.apk');
+    return p.join(updatesDir, _apkFileNameFor(release.versionCode!));
+  }
+
+  String _apkFileNameFor(int versionCode) => 'app-update-$versionCode.apk';
+
+  /// بنحذف أي ملفات APK قديمة من مجلد التحديثات إلا الملف المرتبط
+  /// بالنسخة المطلوبة:
+  /// - `app-update.apk` العام من التنفيذ القديم بيتشال.
+  /// - أي `app-update-<N>.apk` لنسخة تانية ما يصحش نثبّتها للنسخة الجديدة.
+  Future<void> _cleanupStaleApks(int requestedVersionCode) async {
+    try {
+      final supportDir = await getApplicationSupportDirectory();
+      final updatesDir = Directory(p.join(supportDir.path, 'updates'));
+      if (!await updatesDir.exists()) return;
+
+      final expectedName = _apkFileNameFor(requestedVersionCode);
+
+      await for (final entity in updatesDir.list()) {
+        if (entity is! File) continue;
+        if (!entity.path.toLowerCase().endsWith('.apk')) continue;
+        if (p.basename(entity.path) == expectedName) continue;
+
+        _log('deleting stale apk ${entity.path}');
+        try {
+          if (await entity.exists()) await entity.delete();
+        } catch (_) {
+          // تجاهل: لو ماحصلش حذف دلوقتي هيتعامل معاه في التنزيل الجاي.
+        }
+      }
+    } catch (_) {
+      // تجاهل فشل القراءة/الحذف: التنظيف إجراء احتياطي مش خطوة حرجة.
+    }
   }
 
   void _deleteSafely(File file) {
@@ -160,6 +221,12 @@ class UpdateCubit extends Cubit<UpdateState> {
       if (file.existsSync()) file.deleteSync();
     } catch (_) {
       // تجاهل: لو ماحصلش حذف دلوقتي هيتعامل معاه في التنزيل الجاي.
+    }
+  }
+
+  void _log(String message) {
+    if (kDebugMode) {
+      debugPrint('UpdateFlow: $message');
     }
   }
 }

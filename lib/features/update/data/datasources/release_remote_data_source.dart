@@ -9,10 +9,13 @@ import '../models/release_model.dart';
 abstract class ReleaseRemoteDataSource {
   Future<ReleaseModel> getLatestRelease();
 
-  /// ينزّل أحدث APK من `GET /app/releases/latest/download` ويحفظه في [savePath].
+  /// ينزّل APK النسخة اللي فوق اللي بيمثلها [url] ويحفظه في [savePath].
   ///
+  /// [url] لازم يكون راجع من كائن الـ release المطلوب نفسه (file_url)
+  /// عشان نضمن إننا بننزّل نفس النسخة اللي اتقارنت مش "أحدث نسخة" عامة.
   /// بيتبع redirects تلقائيًا وبيتحقق إن الملف الناتج APK سليم (PK magic bytes).
-  Future<void> downloadLatestApk(
+  Future<void> downloadReleaseApk(
+    String url,
     String savePath, {
     void Function(int received, int total)? onReceiveProgress,
   });
@@ -52,7 +55,8 @@ class ReleaseRemoteDataSourceImpl implements ReleaseRemoteDataSource {
   }
 
   @override
-  Future<void> downloadLatestApk(
+  Future<void> downloadReleaseApk(
+    String url,
     String savePath, {
     void Function(int received, int total)? onReceiveProgress,
   }) async {
@@ -60,7 +64,7 @@ class ReleaseRemoteDataSourceImpl implements ReleaseRemoteDataSource {
     await dir.create(recursive: true);
 
     await dio.download(
-      ApiConstants.latestReleaseDownload,
+      url,
       savePath,
       options: Options(
         // التحميل ملف كبير (APK) فبنسيب هامش أمان أكبر من timeout الافتراضي.
