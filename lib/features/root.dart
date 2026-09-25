@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import 'package:mr/features/lessons/presentation/screens/lessons_list_screen.dart';
 import 'package:mr/features/student/presentation/screens/qr_code_view.dart';
+import 'package:mr/features/student/presentation/screens/reports_view.dart';
 
 class Root extends StatefulWidget {
   const Root({super.key, this.selectScreen});
@@ -21,7 +22,9 @@ late int currentScreen ;
     currentScreen = widget.selectScreen ?? 0;
     screens =[
       QrCodeView(),
-      LessonsListScreen()
+      LessonsListScreen(),
+      ReportsView()
+
         ];
     controller = PageController(initialPage: currentScreen);
     super.initState();
@@ -62,6 +65,7 @@ late int currentScreen ;
               items: [
                   BottomNavigationBarItem(icon: Icon(Icons.home_filled),label: 'الرئيسية'),
                   BottomNavigationBarItem(icon: Icon(Icons.book),label: 'الدروس'),
+                  BottomNavigationBarItem(icon: Icon(Icons.bar_chart_rounded),label: 'التقارير'),
               ]
               ),
         ),

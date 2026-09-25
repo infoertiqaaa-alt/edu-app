@@ -181,7 +181,39 @@ class _QrCodeBody extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 24.h),
+                            // SizedBox(height: 20.h),
+                            // Padding(
+                            //   padding: EdgeInsets.symmetric(horizontal: 24.w),
+                            //   child: SizedBox(
+                            //     width: double.infinity,
+                            //     height: 52.h,
+                            //     child: ElevatedButton.icon(
+                            //       onPressed: () =>
+                            //           context.push(Routes.reportsView),
+                            //       style: ElevatedButton.styleFrom(
+                            //         backgroundColor: AppColors.primary,
+                            //         elevation: 0,
+                            //         shape: RoundedRectangleBorder(
+                            //           borderRadius: BorderRadius.circular(14.r),
+                            //         ),
+                            //       ),
+                            //       icon: Icon(
+                            //         Icons.bar_chart_rounded,
+                            //         color: Colors.white,
+                            //         size: 22.w,
+                            //       ),
+                            //       label: Text(
+                            //         'التقارير',
+                            //         style: GoogleFonts.cairo(
+                            //           fontSize: 16,
+                            //           fontWeight: FontWeight.w700,
+                            //           color: Colors.white,
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // SizedBox(height: 16.h),
                           ],
                         ),
                       );

@@ -5,6 +5,7 @@ import 'package:mr/features/auth/presentation/screens/splash_screen.dart';
 import 'package:mr/features/onboarding/views/onboard.dart';
 import 'package:mr/features/root.dart';
 import 'package:mr/features/student/presentation/screens/profile_view.dart';
+import 'package:mr/features/student/presentation/screens/reports_view.dart';
 import 'package:mr/features/assistant/scan_qr_code/presentation/views/scan_qr_entry_view.dart';
 import 'package:mr/features/assistant/scan_qr_code/presentation/views/scan_qr_camera_view.dart';
 import 'package:mr/features/assistant/scan_qr_code/presentation/views/scan_qr_result_view.dart';
@@ -20,9 +21,9 @@ class AppRouter {
       case Routes.onBoardingView:
         return MaterialPageRoute(builder: (context) => Onboard());
       case Routes.root1:
-        return MaterialPageRoute(builder: (context) => Root(selectScreen: 1,));
+        return MaterialPageRoute(builder: (context) => Root(selectScreen: 1));
       case Routes.root:
-        return MaterialPageRoute(builder: (context) => Root());  
+        return MaterialPageRoute(builder: (context) => Root());
       case Routes.scanQrEntry:
         return MaterialPageRoute(builder: (context) => const ScanQrEntryView());
       case Routes.scanQrCamera:
@@ -35,6 +36,8 @@ class AppRouter {
         );
       case Routes.profileView:
         return MaterialPageRoute(builder: (context) => const ProfileView());
+      case Routes.reportsView:
+        return MaterialPageRoute(builder: (context) => const ReportsView());
       case Routes.lessonDetail:
         final lessonId = settings.arguments as int;
         return MaterialPageRoute(

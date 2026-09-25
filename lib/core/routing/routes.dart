@@ -9,6 +9,5 @@ class Routes {
   static const String scanQrResult = "/scanQrResult";
   static const String profileView = "/profileView";
   static const String lessonDetail = "/lessonDetail";
-  
-  
+  static const String reportsView = "/reportsView";
 }

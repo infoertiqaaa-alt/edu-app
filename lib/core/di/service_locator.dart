@@ -9,9 +9,13 @@ import '../../features/auth/presentation/cubit/auth_cubit.dart';
 import '../../features/auth/presentation/cubit/auto_auth_cubit.dart';
 import '../../features/auth/domain/usecases/check_auth_status.dart';
 import '../../features/student/data/datasources/profile_remote_data_source.dart';
+import '../../features/student/data/datasources/reports_remote_data_source.dart';
 import '../../features/student/data/repositories/profile_repository_impl.dart';
+import '../../features/student/data/repositories/reports_repository_impl.dart';
 import '../../features/student/domain/repositories/profile_repository.dart';
+import '../../features/student/domain/repositories/reports_repository.dart';
 import '../../features/student/presentation/cubit/profile_cubit.dart';
+import '../../features/student/presentation/cubit/reports_cubit.dart';
 import '../../features/assistant/scan_qr_code/data/datasources/scan_qr_remote_data_source.dart';
 import '../../features/assistant/scan_qr_code/data/repositories/scan_qr_repository_impl.dart';
 import '../../features/assistant/scan_qr_code/domain/repositories/scan_qr_repository.dart';
@@ -63,6 +67,15 @@ Future<void> setupServiceLocator() async {
   );
 
   sl.registerFactory<ProfileCubit>(() => ProfileCubit(sl()));
+
+  // Reports Feature Registration
+  sl.registerLazySingleton<ReportsRemoteDataSource>(
+    () => ReportsRemoteDataSourceImpl(sl<DioClient>().dio),
+  );
+  sl.registerLazySingleton<ReportsRepository>(
+    () => ReportsRepositoryImpl(sl()),
+  );
+  sl.registerFactory<ReportsCubit>(() => ReportsCubit(sl()));
 
   // ScanQrCode Feature Registration
   sl.registerLazySingleton<ScanQrRemoteDataSource>(

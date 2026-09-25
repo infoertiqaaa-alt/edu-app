@@ -19,13 +19,14 @@ class ApiConstants {
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 15);
 
-  // Endpoints 
+  // Endpoints
   static const String login = '/auth/login';
   static const String studentProfile = '/student/profile';
   static String scanStudentByQr(String qrCodeString) =>
       '/assistant/student/scan/${Uri.encodeComponent(qrCodeString)}';
   static const String registerAttendance = '/assistant/attendance/register';
   static const String lessons = '/student/lessons';
+  static const String studentReports = '/student/reports';
 
   // App release / update endpoints (client reads these, never publishes)
   static const String latestRelease = '/app/releases/latest';
