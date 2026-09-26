@@ -73,7 +73,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          version_line="$(grep -m1 -E '^version: ' pubspec.yaml | sed -E 's/^version:[[:space:]]*//')"
+          # Strip the key and leading whitespace, then normalize any trailing
+          # whitespace (spaces/tabs/CR) so harmless padding cannot leak into
+          # version_name/version_code. Format validation below stays strict.
+          version_line="$(grep -m1 -E '^version: ' pubspec.yaml \
+            | sed -E 's/^version:[[:space:]]*//; s/[[:space:]]+$//' \
+            || true)"
 
           if [[ -z "$version_line" ]]; then
             echo "::error::Could not find a 'version:' line in pubspec.yaml"
