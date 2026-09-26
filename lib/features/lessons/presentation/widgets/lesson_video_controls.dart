@@ -171,12 +171,12 @@ class _LessonVideoControlsState extends State<LessonVideoControls> {
                 icon: Icons.fast_rewind_rounded,
                 onTap: () => _seekBy(const Duration(seconds: -10)),
               ),
-              SizedBox(width: 14.w),
+              SizedBox(width: 20.w),
               _PlayPauseButton(
                 state: _playerState,
                 onTap: _togglePlay,
               ),
-              SizedBox(width: 14.w),
+              SizedBox(width: 20.w),
               _SkipButton(
                 label: '+10s',
                 icon: Icons.fast_forward_rounded,
@@ -291,30 +291,39 @@ class _SkipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Container(
-        width: 42.w,
-        height: 42.w,
-        decoration: BoxDecoration(
-          color: const Color(0x66000000),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: const Color(0x33FFFFFF)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 15.w, color: Colors.white),
-            SizedBox(height: 1.h),
-            Text(
-              label,
-              style: GoogleFonts.cairo(
-                fontSize: 9.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                height: 1.1,
-              ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        child: Align(
+          alignment: Alignment.center,
+          widthFactor: 1,
+          heightFactor: 1,
+          child: Container(
+            width: 42.w,
+            height: 42.w,
+            decoration: BoxDecoration(
+              color: const Color(0x66000000),
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: const Color(0x33FFFFFF)),
             ),
-          ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 15.w, color: Colors.white),
+                SizedBox(height: 1.h),
+                Text(
+                  label,
+                  style: GoogleFonts.cairo(
+                    fontSize: 9.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -334,6 +343,7 @@ class _PlayPauseButton extends StatelessWidget {
     final isEnded = state == PlayerState.ended;
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
         width: 58.w,

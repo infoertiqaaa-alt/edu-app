@@ -199,6 +199,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       videoId: videoId,
       autoPlay: false,
       params: const YoutubePlayerParams(
+        showControls: false,
+        showFullscreenButton: false,
         strictRelatedVideos: true,
         loop: true,
       ),
