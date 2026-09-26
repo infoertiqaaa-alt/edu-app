@@ -9,6 +9,6 @@ The CI/CD pipeline automatically reads the `## <version>` section that matches t
 current `pubspec.yaml` version name and sends it to the Backend as the release
 changelog. If a matching section is missing, the release workflow will fail.
 
-## 5.0.2
+## 4.0.10
 
 * Initial release
