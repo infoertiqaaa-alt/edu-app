@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mr/core/network/network_exceptions.dart';
 import '../../data/models/lesson_note_model.dart';
 import '../../domain/repositories/lesson_notes_repository.dart';
 import 'lesson_notes_state.dart';
@@ -13,8 +14,8 @@ class LessonNotesCubit extends Cubit<LessonNotesState> {
     try {
       final notes = await _repository.getNotes(lessonId);
       emit(LessonNotesLoaded(notes));
-    } catch (e) {
-      emit(LessonNotesError('حدث خطأ أثناء تحميل الملاحظات'));
+    } catch (error) {
+      emit(LessonNotesError(_messageFor(error, 'تحميل')));
     }
   }
 
@@ -22,8 +23,8 @@ class LessonNotesCubit extends Cubit<LessonNotesState> {
     try {
       await _repository.addNote(lessonId, content);
       await loadNotes(lessonId);
-    } catch (e) {
-      emit(LessonNotesError('حدث خطأ أثناء إضافة الملاحظة'));
+    } catch (error) {
+      emit(LessonNotesError(_messageFor(error, 'إضافة')));
     }
   }
 
@@ -31,8 +32,8 @@ class LessonNotesCubit extends Cubit<LessonNotesState> {
     try {
       await _repository.updateNote(note, content);
       await loadNotes(note.lessonId);
-    } catch (e) {
-      emit(LessonNotesError('حدث خطأ أثناء تعديل الملاحظة'));
+    } catch (error) {
+      emit(LessonNotesError(_messageFor(error, 'تعديل')));
     }
   }
 
@@ -40,8 +41,13 @@ class LessonNotesCubit extends Cubit<LessonNotesState> {
     try {
       await _repository.deleteNote(note.id);
       await loadNotes(note.lessonId);
-    } catch (e) {
-      emit(LessonNotesError('حدث خطأ أثناء حذف الملاحظة'));
+    } catch (error) {
+      emit(LessonNotesError(_messageFor(error, 'حذف')));
     }
+  }
+
+  String _messageFor(Object error, String action) {
+    if (error is SessionException) return error.message;
+    return 'حدث خطأ أثناء $action الملاحظة';
   }
 }

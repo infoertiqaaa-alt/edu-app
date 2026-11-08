@@ -1,0 +1,1088 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1794042341.2832153,
+    "seen": 1794043934.509175,
+    "ast_hash": "7cb853d2d9e2c6a8c8155fb2295c64f2",
+    "semantic_hash": "7cb853d2d9e2c6a8c8155fb2295c64f2"
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1794030510.432623,
+    "seen": 1794043934.5091937,
+    "ast_hash": "4a330704078b80e443ee70e8d7726b13",
+    "semantic_hash": "4a330704078b80e443ee70e8d7726b13"
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1794030487.566018,
+    "seen": 1794043934.5092015,
+    "ast_hash": "ae43197d4d93b10e014d62d94e116077",
+    "semantic_hash": "ae43197d4d93b10e014d62d94e116077"
+  },
+  "analysis_options.yaml": {
+    "mtime": 1793923036.2021296,
+    "seen": 1794043934.5092063,
+    "ast_hash": "9ec7b1eff0fd95a9d2922aae93ff8d36",
+    "semantic_hash": "9ec7b1eff0fd95a9d2922aae93ff8d36"
+  },
+  "android/app/build.gradle.kts": {
+    "mtime": 1794032436.2602663,
+    "seen": 1794043934.5092108,
+    "ast_hash": "c48d911655eed312bfcc0189d14478f9",
+    "semantic_hash": "c48d911655eed312bfcc0189d14478f9"
+  },
+  "android/app/google-services.json": {
+    "mtime": 1788183866.1391127,
+    "seen": 1794043934.5092149,
+    "ast_hash": "f74c5f88519969a11bf83a91f2531091",
+    "semantic_hash": "f74c5f88519969a11bf83a91f2531091"
+  },
+  "android/app/src/main/kotlin/com/example/teacher/MainActivity.kt": {
+    "mtime": 1794032368.6863701,
+    "seen": 1794043934.5092194,
+    "ast_hash": "8a864af184eadd3a5d55caf14ef60523",
+    "semantic_hash": "8a864af184eadd3a5d55caf14ef60523"
+  },
+  "android/build.gradle.kts": {
+    "mtime": 1788184132.495986,
+    "seen": 1794043934.509223,
+    "ast_hash": "b4a05d7b7fc9448148d279ecba44bf20",
+    "semantic_hash": "b4a05d7b7fc9448148d279ecba44bf20"
+  },
+  "android/settings.gradle.kts": {
+    "mtime": 1788184148.5761132,
+    "seen": 1794043934.5092263,
+    "ast_hash": "aea593b88c01a57dd1762812c7ee792e",
+    "semantic_hash": "aea593b88c01a57dd1762812c7ee792e"
+  },
+  "flutter_native_splash.yaml": {
+    "mtime": 1787916856.159019,
+    "seen": 1794043934.50923,
+    "ast_hash": "497fd801438772e3a823383511c4fd20",
+    "semantic_hash": "497fd801438772e3a823383511c4fd20"
+  },
+  "ios/RunnerTests/RunnerTests.swift": {
+    "mtime": 1786796244.3000927,
+    "seen": 1794043934.5092335,
+    "ast_hash": "24e5d095048eb86c30423f4e04b6e57b",
+    "semantic_hash": "24e5d095048eb86c30423f4e04b6e57b"
+  },
+  "ios/Runner/AppDelegate.swift": {
+    "mtime": 1778411163.3118663,
+    "seen": 1794043934.5092375,
+    "ast_hash": "9e1de9c329a3fe4931876063de95132b",
+    "semantic_hash": "9e1de9c329a3fe4931876063de95132b"
+  },
+  "ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1787907384.9615984,
+    "seen": 1794043934.5092409,
+    "ast_hash": "c870f277d0c83d1af12f8dc2d368879a",
+    "semantic_hash": "c870f277d0c83d1af12f8dc2d368879a"
+  },
+  "ios/Runner/Assets.xcassets/LaunchBackground.imageset/Contents.json": {
+    "mtime": 1787916892.7273283,
+    "seen": 1794043934.5092444,
+    "ast_hash": "5cbbd25e938b9ba754aa4b1dbd876eca",
+    "semantic_hash": "5cbbd25e938b9ba754aa4b1dbd876eca"
+  },
+  "ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json": {
+    "mtime": 1787916892.4802203,
+    "seen": 1794043934.509248,
+    "ast_hash": "0827e8a9ba504cc1db6605cbd01fc656",
+    "semantic_hash": "0827e8a9ba504cc1db6605cbd01fc656"
+  },
+  "ios/Runner/Runner-Bridging-Header.h": {
+    "mtime": 1765555860.9108672,
+    "seen": 1794043934.5092516,
+    "ast_hash": "7ad7b5cea096132de13ba526b2b9efbe",
+    "semantic_hash": "7ad7b5cea096132de13ba526b2b9efbe"
+  },
+  "ios/Runner/SceneDelegate.swift": {
+    "mtime": 1778411163.3138618,
+    "seen": 1794043934.509255,
+    "ast_hash": "0c3e86af131f6a9e547c80b5ed058914",
+    "semantic_hash": "0c3e86af131f6a9e547c80b5ed058914"
+  },
+  "lib/core/config/app_config.dart": {
+    "mtime": 1794030048.856049,
+    "seen": 1794043934.5092585,
+    "ast_hash": "3ff733d8540fe64f99eaa89f007579a4",
+    "semantic_hash": "3ff733d8540fe64f99eaa89f007579a4"
+  },
+  "lib/core/constants/api_constants.dart": {
+    "mtime": 1794028957.2176204,
+    "seen": 1794043934.5092618,
+    "ast_hash": "4a7cf2f60191130f875139aa9d6e2584",
+    "semantic_hash": "4a7cf2f60191130f875139aa9d6e2584"
+  },
+  "lib/core/di/service_locator.dart": {
+    "mtime": 1794030048.8753328,
+    "seen": 1794043934.5092654,
+    "ast_hash": "dafc170d8410ec84a46e75ed2e0d577f",
+    "semantic_hash": "dafc170d8410ec84a46e75ed2e0d577f"
+  },
+  "lib/core/extensions/context_extensions.dart": {
+    "mtime": 1794030048.9260721,
+    "seen": 1794043934.5092692,
+    "ast_hash": "3649685579ed7c176cad010719ade4ba",
+    "semantic_hash": "3649685579ed7c176cad010719ade4ba"
+  },
+  "lib/core/network/api_response.dart": {
+    "mtime": 1794030652.9674253,
+    "seen": 1794043934.5092726,
+    "ast_hash": "f45bef5a0aeaa20fdbc829d68f039d5e",
+    "semantic_hash": "f45bef5a0aeaa20fdbc829d68f039d5e"
+  },
+  "lib/core/network/dio_client.dart": {
+    "mtime": 1794030233.7745097,
+    "seen": 1794043934.5092769,
+    "ast_hash": "27c46162b5de954855a105206331ff4f",
+    "semantic_hash": "27c46162b5de954855a105206331ff4f"
+  },
+  "lib/core/network/network_exceptions.dart": {
+    "mtime": 1794030048.9522216,
+    "seen": 1794043934.5092804,
+    "ast_hash": "468411838dd4a0129482c61f5aef8096",
+    "semantic_hash": "468411838dd4a0129482c61f5aef8096"
+  },
+  "lib/core/routing/app_navigator.dart": {
+    "mtime": 1794028930.041596,
+    "seen": 1794043934.509284,
+    "ast_hash": "a5676928973cf81bd4b962073f8352b4",
+    "semantic_hash": "a5676928973cf81bd4b962073f8352b4"
+  },
+  "lib/core/routing/app_router.dart": {
+    "mtime": 1790282246.3814497,
+    "seen": 1794043934.5092874,
+    "ast_hash": "3bcf7a18ae2adf7c92dd34ef2d3c7a0d",
+    "semantic_hash": "3bcf7a18ae2adf7c92dd34ef2d3c7a0d"
+  },
+  "lib/core/routing/routes.dart": {
+    "mtime": 1790282246.3787346,
+    "seen": 1794043934.509291,
+    "ast_hash": "1e1930f8631f582a8aeebe5c2d30fc5a",
+    "semantic_hash": "1e1930f8631f582a8aeebe5c2d30fc5a"
+  },
+  "lib/core/session/session_manager.dart": {
+    "mtime": 1794028957.2522354,
+    "seen": 1794043934.5092945,
+    "ast_hash": "c1126617aa59005659943beaba62181b",
+    "semantic_hash": "c1126617aa59005659943beaba62181b"
+  },
+  "lib/core/storage/onboarding_storage.dart": {
+    "mtime": 1787651800.3805482,
+    "seen": 1794043934.509298,
+    "ast_hash": "e9c93b21c35760824729ebcfc8445f37",
+    "semantic_hash": "e9c93b21c35760824729ebcfc8445f37"
+  },
+  "lib/core/storage/token_storage.dart": {
+    "mtime": 1794028957.2176204,
+    "seen": 1794043934.5093017,
+    "ast_hash": "24fad2bcbf504ffb5e83deeecef7f84c",
+    "semantic_hash": "24fad2bcbf504ffb5e83deeecef7f84c"
+  },
+  "lib/core/theme/app_colors.dart": {
+    "mtime": 1794030048.9927711,
+    "seen": 1794043934.5093052,
+    "ast_hash": "2d62d189c090f2cd9c3ba0164faf6251",
+    "semantic_hash": "2d62d189c090f2cd9c3ba0164faf6251"
+  },
+  "lib/core/theme/app_fonts.dart": {
+    "mtime": 1794034339.3806643,
+    "seen": 1794043934.5093086,
+    "ast_hash": "92805725d813420c20b2bee25995e493",
+    "semantic_hash": "92805725d813420c20b2bee25995e493"
+  },
+  "lib/core/theme/font_weight_helper.dart": {
+    "mtime": 1794030048.9937427,
+    "seen": 1794043934.5093126,
+    "ast_hash": "c9f7e12d8b0ac06227e70267d2b50167",
+    "semantic_hash": "c9f7e12d8b0ac06227e70267d2b50167"
+  },
+  "lib/core/theme/style.dart": {
+    "mtime": 1794030048.9957469,
+    "seen": 1794043934.5093162,
+    "ast_hash": "63da8d295eaba04f64a3659ab0c052b8",
+    "semantic_hash": "63da8d295eaba04f64a3659ab0c052b8"
+  },
+  "lib/core/utils/json_parsers.dart": {
+    "mtime": 1794028930.041596,
+    "seen": 1794043934.5093193,
+    "ast_hash": "4db77d6deeb0728222d316b79f690583",
+    "semantic_hash": "4db77d6deeb0728222d316b79f690583"
+  },
+  "lib/core/utils/number_formatter.dart": {
+    "mtime": 1794028930.0480077,
+    "seen": 1794043934.5093226,
+    "ast_hash": "85dcd36f2da81abe9260d0a97662bd85",
+    "semantic_hash": "85dcd36f2da81abe9260d0a97662bd85"
+  },
+  "lib/core/widgets/app_error_dialog.dart": {
+    "mtime": 1788894814.2314832,
+    "seen": 1794043934.5093267,
+    "ast_hash": "4afebaf173953e47486a252f7347ab51",
+    "semantic_hash": "4afebaf173953e47486a252f7347ab51"
+  },
+  "lib/core/widgets/custom_button.dart": {
+    "mtime": 1794030049.021461,
+    "seen": 1794043934.5093303,
+    "ast_hash": "916a0228e60f80800070368dc8c5e7ba",
+    "semantic_hash": "916a0228e60f80800070368dc8c5e7ba"
+  },
+  "lib/core/widgets/student_avatar.dart": {
+    "mtime": 1789833862.9094558,
+    "seen": 1794043934.5093338,
+    "ast_hash": "6168603759880d8296426ca16a65f36f",
+    "semantic_hash": "6168603759880d8296426ca16a65f36f"
+  },
+  "lib/features/assistant/scan_qr_code/data/datasources/scan_qr_remote_data_source.dart": {
+    "mtime": 1794030049.0524175,
+    "seen": 1794043934.5093372,
+    "ast_hash": "9c6517ab7dde547131bea8ead43f9cdc",
+    "semantic_hash": "9c6517ab7dde547131bea8ead43f9cdc"
+  },
+  "lib/features/assistant/scan_qr_code/data/models/scanned_student_model.dart": {
+    "mtime": 1794029780.0651152,
+    "seen": 1794043934.5093408,
+    "ast_hash": "b1a48f4fedef5634ecf62dc58d0cc6bd",
+    "semantic_hash": "b1a48f4fedef5634ecf62dc58d0cc6bd"
+  },
+  "lib/features/assistant/scan_qr_code/data/repositories/scan_qr_repository_impl.dart": {
+    "mtime": 1794030049.093445,
+    "seen": 1794043934.5093443,
+    "ast_hash": "ec846fc3223b151aec66afc92b524c51",
+    "semantic_hash": "ec846fc3223b151aec66afc92b524c51"
+  },
+  "lib/features/assistant/scan_qr_code/domain/repositories/scan_qr_repository.dart": {
+    "mtime": 1788698651.098994,
+    "seen": 1794043934.5093482,
+    "ast_hash": "db0f8975eceb85b18f17ad2da1acd23f",
+    "semantic_hash": "db0f8975eceb85b18f17ad2da1acd23f"
+  },
+  "lib/features/assistant/scan_qr_code/presentation/cubit/scan_qr_cubit.dart": {
+    "mtime": 1788698651.0999904,
+    "seen": 1794043934.5093532,
+    "ast_hash": "e47139847862609982506d0e21e6521f",
+    "semantic_hash": "e47139847862609982506d0e21e6521f"
+  },
+  "lib/features/assistant/scan_qr_code/presentation/cubit/scan_qr_state.dart": {
+    "mtime": 1787402662.0,
+    "seen": 1794043934.5093565,
+    "ast_hash": "659e1e02341c0dcc87b05480abcd6de6",
+    "semantic_hash": "659e1e02341c0dcc87b05480abcd6de6"
+  },
+  "lib/features/assistant/scan_qr_code/presentation/views/scan_qr_camera_view.dart": {
+    "mtime": 1794030049.135271,
+    "seen": 1794043934.50936,
+    "ast_hash": "f7b42741d663668c29263a3c69a4437a",
+    "semantic_hash": "f7b42741d663668c29263a3c69a4437a"
+  },
+  "lib/features/assistant/scan_qr_code/presentation/views/scan_qr_entry_view.dart": {
+    "mtime": 1794030049.1502304,
+    "seen": 1794043934.5093634,
+    "ast_hash": "ee2ecbb83e8a8f6d4db67bed999a7b59",
+    "semantic_hash": "ee2ecbb83e8a8f6d4db67bed999a7b59"
+  },
+  "lib/features/assistant/scan_qr_code/presentation/views/scan_qr_result_view.dart": {
+    "mtime": 1794030049.1653194,
+    "seen": 1794043934.509367,
+    "ast_hash": "756154c27bb7fec729bde9960c2fa2c8",
+    "semantic_hash": "756154c27bb7fec729bde9960c2fa2c8"
+  },
+  "lib/features/assistant/scan_qr_code/presentation/widgets/info_section_card.dart": {
+    "mtime": 1794030049.183013,
+    "seen": 1794043934.5093706,
+    "ast_hash": "9460866061212d5dece14f08aed47179",
+    "semantic_hash": "9460866061212d5dece14f08aed47179"
+  },
+  "lib/features/auth/data/datasources/auth_remote_data_source.dart": {
+    "mtime": 1794030049.19565,
+    "seen": 1794043934.5093741,
+    "ast_hash": "32cab7ca1c368806003a2a9e22fb5aac",
+    "semantic_hash": "32cab7ca1c368806003a2a9e22fb5aac"
+  },
+  "lib/features/auth/data/models/login_request_model.dart": {
+    "mtime": 1794030049.201916,
+    "seen": 1794043934.5093777,
+    "ast_hash": "449dbc1b4f54e8d3fa9b83078a899239",
+    "semantic_hash": "449dbc1b4f54e8d3fa9b83078a899239"
+  },
+  "lib/features/auth/data/models/login_response_model.dart": {
+    "mtime": 1786970088.323078,
+    "seen": 1794043934.509381,
+    "ast_hash": "618ff9803245a2755abf66e04afb0cd8",
+    "semantic_hash": "618ff9803245a2755abf66e04afb0cd8"
+  },
+  "lib/features/auth/data/models/user_model.dart": {
+    "mtime": 1794030049.2039125,
+    "seen": 1794043934.5093844,
+    "ast_hash": "aa0bbe0d6ebd3c976946a23b8d7e97ff",
+    "semantic_hash": "aa0bbe0d6ebd3c976946a23b8d7e97ff"
+  },
+  "lib/features/auth/data/repositories/auth_repository_impl.dart": {
+    "mtime": 1794030049.214881,
+    "seen": 1794043934.5093882,
+    "ast_hash": "f622278e1eca1dbbd9803d950b43ccc6",
+    "semantic_hash": "f622278e1eca1dbbd9803d950b43ccc6"
+  },
+  "lib/features/auth/domain/repositories/auth_repository.dart": {
+    "mtime": 1787655730.0389895,
+    "seen": 1794043934.5093918,
+    "ast_hash": "568f0409d12169d123b53b3f9dd338b7",
+    "semantic_hash": "568f0409d12169d123b53b3f9dd338b7"
+  },
+  "lib/features/auth/domain/usecases/check_auth_status.dart": {
+    "mtime": 1787655730.0389895,
+    "seen": 1794043934.5093951,
+    "ast_hash": "f0c68faa6096a90de397950ca279edde",
+    "semantic_hash": "f0c68faa6096a90de397950ca279edde"
+  },
+  "lib/features/auth/presentation/cubit/auth_cubit.dart": {
+    "mtime": 1786779836.0,
+    "seen": 1794043934.5093987,
+    "ast_hash": "37403321b5e05aac2f1d706d6c6b2eda",
+    "semantic_hash": "37403321b5e05aac2f1d706d6c6b2eda"
+  },
+  "lib/features/auth/presentation/cubit/auth_state.dart": {
+    "mtime": 1786779832.0,
+    "seen": 1794043934.5094025,
+    "ast_hash": "472ed967275dbd40d2927214dc4c1386",
+    "semantic_hash": "472ed967275dbd40d2927214dc4c1386"
+  },
+  "lib/features/auth/presentation/cubit/auto_auth_cubit.dart": {
+    "mtime": 1794029192.531781,
+    "seen": 1794043934.5094059,
+    "ast_hash": "1a6a80c4724f7425703f00981eb8c3c0",
+    "semantic_hash": "1a6a80c4724f7425703f00981eb8c3c0"
+  },
+  "lib/features/auth/presentation/cubit/auto_auth_state.dart": {
+    "mtime": 1787655729.9899704,
+    "seen": 1794043934.50941,
+    "ast_hash": "54fd66c75103d07bc80d0ba59811f5ff",
+    "semantic_hash": "54fd66c75103d07bc80d0ba59811f5ff"
+  },
+  "lib/features/auth/presentation/screens/login_screen.dart": {
+    "mtime": 1794029521.8712435,
+    "seen": 1794043934.509413,
+    "ast_hash": "c23be485e59620fdb8f6f9ae5b50a753",
+    "semantic_hash": "c23be485e59620fdb8f6f9ae5b50a753"
+  },
+  "lib/features/auth/presentation/screens/splash_screen.dart": {
+    "mtime": 1794032151.377403,
+    "seen": 1794043934.5094168,
+    "ast_hash": "9890d74a1b4506e03fa0612792bcc16c",
+    "semantic_hash": "9890d74a1b4506e03fa0612792bcc16c"
+  },
+  "lib/features/auth/presentation/widgets/custom_text_field.dart": {
+    "mtime": 1794030049.3009984,
+    "seen": 1794043934.5094204,
+    "ast_hash": "8e8912ee5b8228870cf5165222f5d7ac",
+    "semantic_hash": "8e8912ee5b8228870cf5165222f5d7ac"
+  },
+  "lib/features/lessons/data/datasources/lessons_remote_data_source.dart": {
+    "mtime": 1788698651.1229293,
+    "seen": 1794043934.5094342,
+    "ast_hash": "56c2bd0c04052d0bbad9336d70dd5207",
+    "semantic_hash": "56c2bd0c04052d0bbad9336d70dd5207"
+  },
+  "lib/features/lessons/data/datasources/notes_database.dart": {
+    "mtime": 1794029256.2560291,
+    "seen": 1794043934.5094373,
+    "ast_hash": "5f34c8e3bc25adb61c570a7c51ab645d",
+    "semantic_hash": "5f34c8e3bc25adb61c570a7c51ab645d"
+  },
+  "lib/features/lessons/data/models/lesson_detail_model.dart": {
+    "mtime": 1794029766.6425068,
+    "seen": 1794043934.5094414,
+    "ast_hash": "553214fbdd68890d510a8393c1b596ee",
+    "semantic_hash": "553214fbdd68890d510a8393c1b596ee"
+  },
+  "lib/features/lessons/data/models/lesson_model.dart": {
+    "mtime": 1794029766.6440263,
+    "seen": 1794043934.509445,
+    "ast_hash": "d75dee71e3ce158d7a66c5008015fe17",
+    "semantic_hash": "d75dee71e3ce158d7a66c5008015fe17"
+  },
+  "lib/features/lessons/data/models/lesson_note_model.dart": {
+    "mtime": 1794030049.3387232,
+    "seen": 1794043934.5094485,
+    "ast_hash": "2d627d163f69ffa56428a86ca4567be1",
+    "semantic_hash": "2d627d163f69ffa56428a86ca4567be1"
+  },
+  "lib/features/lessons/data/repositories/lesson_notes_repository_impl.dart": {
+    "mtime": 1794030049.3515668,
+    "seen": 1794043934.509452,
+    "ast_hash": "7783ee457e6bffb39a10de39c7bad7f9",
+    "semantic_hash": "7783ee457e6bffb39a10de39c7bad7f9"
+  },
+  "lib/features/lessons/data/repositories/lessons_repository_impl.dart": {
+    "mtime": 1788698651.1239262,
+    "seen": 1794043934.509456,
+    "ast_hash": "fdc835b29969db97edd49f54bfe3a912",
+    "semantic_hash": "fdc835b29969db97edd49f54bfe3a912"
+  },
+  "lib/features/lessons/domain/logic/youtube_url_parser.dart": {
+    "mtime": 1794029281.607841,
+    "seen": 1794043934.5094595,
+    "ast_hash": "9829a7582098adf044e54e7bb2ab4e91",
+    "semantic_hash": "9829a7582098adf044e54e7bb2ab4e91"
+  },
+  "lib/features/lessons/domain/repositories/lesson_notes_repository.dart": {
+    "mtime": 1794030049.3703566,
+    "seen": 1794043934.5094628,
+    "ast_hash": "885a2a14d4263b7be4c33a4c9c2119ae",
+    "semantic_hash": "885a2a14d4263b7be4c33a4c9c2119ae"
+  },
+  "lib/features/lessons/domain/repositories/lessons_repository.dart": {
+    "mtime": 1788698651.124924,
+    "seen": 1794043934.5094664,
+    "ast_hash": "6aa7bb830846d57a030da676c98653b8",
+    "semantic_hash": "6aa7bb830846d57a030da676c98653b8"
+  },
+  "lib/features/lessons/presentation/cubit/lesson_detail_cubit.dart": {
+    "mtime": 1787662196.8016598,
+    "seen": 1794043934.5094697,
+    "ast_hash": "d4a66fe75abad637579c51d7c2e989b3",
+    "semantic_hash": "d4a66fe75abad637579c51d7c2e989b3"
+  },
+  "lib/features/lessons/presentation/cubit/lesson_detail_state.dart": {
+    "mtime": 1787662195.7069674,
+    "seen": 1794043934.5094733,
+    "ast_hash": "8bed713e8ebf9da6d04deb078eec0e87",
+    "semantic_hash": "8bed713e8ebf9da6d04deb078eec0e87"
+  },
+  "lib/features/lessons/presentation/cubit/lesson_notes_cubit.dart": {
+    "mtime": 1794029268.7222185,
+    "seen": 1794043934.5094767,
+    "ast_hash": "c29555c08d5637f0d67b5799f54333d4",
+    "semantic_hash": "c29555c08d5637f0d67b5799f54333d4"
+  },
+  "lib/features/lessons/presentation/cubit/lesson_notes_state.dart": {
+    "mtime": 1794030049.378852,
+    "seen": 1794043934.5094807,
+    "ast_hash": "8afcc5e4dac281b56c544de51d42e7a8",
+    "semantic_hash": "8afcc5e4dac281b56c544de51d42e7a8"
+  },
+  "lib/features/lessons/presentation/cubit/lessons_cubit.dart": {
+    "mtime": 1787662192.5831647,
+    "seen": 1794043934.509484,
+    "ast_hash": "848974a77708c9e8db4d73e60462d6f1",
+    "semantic_hash": "848974a77708c9e8db4d73e60462d6f1"
+  },
+  "lib/features/lessons/presentation/cubit/lessons_state.dart": {
+    "mtime": 1787662190.8829088,
+    "seen": 1794043934.5094876,
+    "ast_hash": "37a38ee260fae943cd099b81caf3315f",
+    "semantic_hash": "37a38ee260fae943cd099b81caf3315f"
+  },
+  "lib/features/lessons/presentation/screens/lesson_detail_screen.dart": {
+    "mtime": 1794030049.406913,
+    "seen": 1794043934.5094912,
+    "ast_hash": "3a66ae103f592e786d320e53c3f2b657",
+    "semantic_hash": "3a66ae103f592e786d320e53c3f2b657"
+  },
+  "lib/features/lessons/presentation/screens/lessons_list_screen.dart": {
+    "mtime": 1794030049.4248998,
+    "seen": 1794043934.5094948,
+    "ast_hash": "ff190f630c2b283aa8abf3f2e3cc1753",
+    "semantic_hash": "ff190f630c2b283aa8abf3f2e3cc1753"
+  },
+  "lib/features/lessons/presentation/widgets/add_note_dialog.dart": {
+    "mtime": 1794030049.4476786,
+    "seen": 1794043934.5094981,
+    "ast_hash": "732cd9ed1beac6839a6687c7964a1613",
+    "semantic_hash": "732cd9ed1beac6839a6687c7964a1613"
+  },
+  "lib/features/lessons/presentation/widgets/lesson_video_controls.dart": {
+    "mtime": 1794030049.457166,
+    "seen": 1794043934.509502,
+    "ast_hash": "0f171cbbea127336feeba312b851cfa5",
+    "semantic_hash": "0f171cbbea127336feeba312b851cfa5"
+  },
+  "lib/features/onboarding/views/onboard.dart": {
+    "mtime": 1794030049.4690783,
+    "seen": 1794043934.5095055,
+    "ast_hash": "d3d9e60a9f0ef3d63e8184ed5f3985ad",
+    "semantic_hash": "d3d9e60a9f0ef3d63e8184ed5f3985ad"
+  },
+  "lib/features/onboarding/views/onboard1_view.dart": {
+    "mtime": 1794030049.474099,
+    "seen": 1794043934.509509,
+    "ast_hash": "4581b177c1a781d4a345e328e64a40c5",
+    "semantic_hash": "4581b177c1a781d4a345e328e64a40c5"
+  },
+  "lib/features/onboarding/views/onboard2_view.dart": {
+    "mtime": 1794030049.475783,
+    "seen": 1794043934.5095127,
+    "ast_hash": "9993dbb7b5bfb97b499dd2e79af4d4aa",
+    "semantic_hash": "9993dbb7b5bfb97b499dd2e79af4d4aa"
+  },
+  "lib/features/onboarding/widgets/custom_button_onboard.dart": {
+    "mtime": 1794030049.4864616,
+    "seen": 1794043934.5095186,
+    "ast_hash": "20aa6055cb3457c33220451d5bc57457",
+    "semantic_hash": "20aa6055cb3457c33220451d5bc57457"
+  },
+  "lib/features/onboarding/widgets/onboarding_background.dart": {
+    "mtime": 1786887326.468664,
+    "seen": 1794043934.5095222,
+    "ast_hash": "37fb0c87afbf73cbf9641be19c3a0673",
+    "semantic_hash": "37fb0c87afbf73cbf9641be19c3a0673"
+  },
+  "lib/features/root.dart": {
+    "mtime": 1794030049.4998808,
+    "seen": 1794043934.509526,
+    "ast_hash": "16420eb6dcb1fab33577e8b21b784631",
+    "semantic_hash": "16420eb6dcb1fab33577e8b21b784631"
+  },
+  "lib/features/student/data/datasources/profile_remote_data_source.dart": {
+    "mtime": 1794030049.5081947,
+    "seen": 1794043934.5095296,
+    "ast_hash": "20f3196bb68514102f57d8732bbc2790",
+    "semantic_hash": "20f3196bb68514102f57d8732bbc2790"
+  },
+  "lib/features/student/data/datasources/reports_remote_data_source.dart": {
+    "mtime": 1790282246.0788212,
+    "seen": 1794043934.509533,
+    "ast_hash": "9954e9e81f60a0d0481c14ff84eb920c",
+    "semantic_hash": "9954e9e81f60a0d0481c14ff84eb920c"
+  },
+  "lib/features/student/data/models/attendance_report_model.dart": {
+    "mtime": 1794029766.6425068,
+    "seen": 1794043934.5095365,
+    "ast_hash": "9de8966133217369c360eca337818527",
+    "semantic_hash": "9de8966133217369c360eca337818527"
+  },
+  "lib/features/student/data/models/financial_report_model.dart": {
+    "mtime": 1794029766.6430287,
+    "seen": 1794043934.5095398,
+    "ast_hash": "0c48e0a3efc96673bb74eb8d205c843c",
+    "semantic_hash": "0c48e0a3efc96673bb74eb8d205c843c"
+  },
+  "lib/features/student/data/models/reports_model.dart": {
+    "mtime": 1790282246.0952103,
+    "seen": 1794043934.5095434,
+    "ast_hash": "8c11eb48355c3a262dbfaa9293df9cff",
+    "semantic_hash": "8c11eb48355c3a262dbfaa9293df9cff"
+  },
+  "lib/features/student/data/models/student_profile_model.dart": {
+    "mtime": 1794029766.6425068,
+    "seen": 1794043934.509547,
+    "ast_hash": "e9a8368a26b4995ef94c7d408740a8f0",
+    "semantic_hash": "e9a8368a26b4995ef94c7d408740a8f0"
+  },
+  "lib/features/student/data/models/student_report_model.dart": {
+    "mtime": 1794029766.6425068,
+    "seen": 1794043934.5095503,
+    "ast_hash": "963a4f642ce1a0c1ae3ab4dd3c85b8e7",
+    "semantic_hash": "963a4f642ce1a0c1ae3ab4dd3c85b8e7"
+  },
+  "lib/features/student/data/repositories/profile_repository_impl.dart": {
+    "mtime": 1794029226.3547096,
+    "seen": 1794043934.509554,
+    "ast_hash": "8cca507aa8d85f5f7665f741d8ba50c9",
+    "semantic_hash": "8cca507aa8d85f5f7665f741d8ba50c9"
+  },
+  "lib/features/student/data/repositories/reports_repository_impl.dart": {
+    "mtime": 1790282246.1159358,
+    "seen": 1794043934.5095572,
+    "ast_hash": "8d75a939cd44029314f8a7da3cbf808b",
+    "semantic_hash": "8d75a939cd44029314f8a7da3cbf808b"
+  },
+  "lib/features/student/domain/repositories/profile_repository.dart": {
+    "mtime": 1794029226.3547096,
+    "seen": 1794043934.5095608,
+    "ast_hash": "6e95dedf1c04b9de9a4cec1a6077d0d3",
+    "semantic_hash": "6e95dedf1c04b9de9a4cec1a6077d0d3"
+  },
+  "lib/features/student/domain/repositories/reports_repository.dart": {
+    "mtime": 1790282246.133947,
+    "seen": 1794043934.5095644,
+    "ast_hash": "e3b9a798e47cc0f4c159546942c299b5",
+    "semantic_hash": "e3b9a798e47cc0f4c159546942c299b5"
+  },
+  "lib/features/student/presentation/cubit/profile_cubit.dart": {
+    "mtime": 1794029226.3629825,
+    "seen": 1794043934.5095677,
+    "ast_hash": "7c3a65cb1849848ec18f56aca1eae757",
+    "semantic_hash": "7c3a65cb1849848ec18f56aca1eae757"
+  },
+  "lib/features/student/presentation/cubit/profile_state.dart": {
+    "mtime": 1794029226.3627317,
+    "seen": 1794043934.5095713,
+    "ast_hash": "bb42c52d83a5eb204afcdfac86bb42a9",
+    "semantic_hash": "bb42c52d83a5eb204afcdfac86bb42a9"
+  },
+  "lib/features/student/presentation/cubit/reports_cubit.dart": {
+    "mtime": 1790282246.148929,
+    "seen": 1794043934.509575,
+    "ast_hash": "dd0b1381cf18e188f05310f0687b8b59",
+    "semantic_hash": "dd0b1381cf18e188f05310f0687b8b59"
+  },
+  "lib/features/student/presentation/cubit/reports_state.dart": {
+    "mtime": 1790282246.1519215,
+    "seen": 1794043934.5095785,
+    "ast_hash": "78f113e75c3f722978fc210ad05a706a",
+    "semantic_hash": "78f113e75c3f722978fc210ad05a706a"
+  },
+  "lib/features/student/presentation/screens/profile_view.dart": {
+    "mtime": 1794030264.409068,
+    "seen": 1794043934.5095818,
+    "ast_hash": "45d599a24d1ecad84a3054f108eded36",
+    "semantic_hash": "45d599a24d1ecad84a3054f108eded36"
+  },
+  "lib/features/student/presentation/screens/qr_code_view.dart": {
+    "mtime": 1794030049.6526942,
+    "seen": 1794043934.5095854,
+    "ast_hash": "516e3eb24d2ed51ce0a9b730e7926065",
+    "semantic_hash": "516e3eb24d2ed51ce0a9b730e7926065"
+  },
+  "lib/features/student/presentation/screens/reports_view.dart": {
+    "mtime": 1794030049.6915197,
+    "seen": 1794043934.509589,
+    "ast_hash": "634a170a959badbab765292d319a26e8",
+    "semantic_hash": "634a170a959badbab765292d319a26e8"
+  },
+  "lib/features/student/presentation/widgets/qr_code_widget.dart": {
+    "mtime": 1794030049.7021496,
+    "seen": 1794043934.5095923,
+    "ast_hash": "dff1684b8dfedcb79174dd27e8f5084c",
+    "semantic_hash": "dff1684b8dfedcb79174dd27e8f5084c"
+  },
+  "lib/features/update/data/datasources/apk_inspector.dart": {
+    "mtime": 1794030049.7128356,
+    "seen": 1794043934.509596,
+    "ast_hash": "962094203d47ca183d97b3c9b881d9db",
+    "semantic_hash": "962094203d47ca183d97b3c9b881d9db"
+  },
+  "lib/features/update/data/datasources/apk_installer.dart": {
+    "mtime": 1789203251.7751045,
+    "seen": 1794043934.5095994,
+    "ast_hash": "8303aad910f947fb9666a9a5ec68e312",
+    "semantic_hash": "8303aad910f947fb9666a9a5ec68e312"
+  },
+  "lib/features/update/data/datasources/release_remote_data_source.dart": {
+    "mtime": 1794030233.7691252,
+    "seen": 1794043934.509603,
+    "ast_hash": "64e3c83289614d474298b0bb014076db",
+    "semantic_hash": "64e3c83289614d474298b0bb014076db"
+  },
+  "lib/features/update/data/models/release_model.dart": {
+    "mtime": 1794030049.7431202,
+    "seen": 1794043934.5096066,
+    "ast_hash": "46325448c57d80234946d3512bcae355",
+    "semantic_hash": "46325448c57d80234946d3512bcae355"
+  },
+  "lib/features/update/data/repositories/update_repository_impl.dart": {
+    "mtime": 1789805332.7131138,
+    "seen": 1794043934.5096102,
+    "ast_hash": "6f0cd6a2d1375757cf21c341fa4bf550",
+    "semantic_hash": "6f0cd6a2d1375757cf21c341fa4bf550"
+  },
+  "lib/features/update/data/services/apk_validation_service.dart": {
+    "mtime": 1794030049.757745,
+    "seen": 1794043934.5096138,
+    "ast_hash": "c43b0bf780b5fc024c222be2fe4fb0ab",
+    "semantic_hash": "c43b0bf780b5fc024c222be2fe4fb0ab"
+  },
+  "lib/features/update/data/services/release_download_url.dart": {
+    "mtime": 1794029923.9023275,
+    "seen": 1794043934.509617,
+    "ast_hash": "3fbaa7d7afaabcd6d3ab7b73e4c0917c",
+    "semantic_hash": "3fbaa7d7afaabcd6d3ab7b73e4c0917c"
+  },
+  "lib/features/update/domain/logic/update_comparator.dart": {
+    "mtime": 1789203251.857168,
+    "seen": 1794043934.5096207,
+    "ast_hash": "419b020dc4cc1f6034d9b6bcbd6d9bf1",
+    "semantic_hash": "419b020dc4cc1f6034d9b6bcbd6d9bf1"
+  },
+  "lib/features/update/domain/repositories/update_repository.dart": {
+    "mtime": 1789805321.0393026,
+    "seen": 1794043934.5096242,
+    "ast_hash": "14e78bd3dcb6f962a50baf0740a64798",
+    "semantic_hash": "14e78bd3dcb6f962a50baf0740a64798"
+  },
+  "lib/features/update/domain/usecases/download_release_apk.dart": {
+    "mtime": 1794030049.7772422,
+    "seen": 1794043934.5096276,
+    "ast_hash": "7becb72a7ee5cb6fed067a26146f7a62",
+    "semantic_hash": "7becb72a7ee5cb6fed067a26146f7a62"
+  },
+  "lib/features/update/domain/usecases/get_latest_release.dart": {
+    "mtime": 1789203750.8077312,
+    "seen": 1794043934.509631,
+    "ast_hash": "9c98c1b73b12102a053616fdfc40a4cf",
+    "semantic_hash": "9c98c1b73b12102a053616fdfc40a4cf"
+  },
+  "lib/features/update/presentation/cubit/update_cubit.dart": {
+    "mtime": 1794032089.9065914,
+    "seen": 1794043934.5096343,
+    "ast_hash": "b8fe55de1a1252c2f89852fda644f88c",
+    "semantic_hash": "b8fe55de1a1252c2f89852fda644f88c"
+  },
+  "lib/features/update/presentation/cubit/update_state.dart": {
+    "mtime": 1794032104.326575,
+    "seen": 1794043934.5096378,
+    "ast_hash": "6c33d45a259f3b97aa4f926d0be1e01b",
+    "semantic_hash": "6c33d45a259f3b97aa4f926d0be1e01b"
+  },
+  "lib/features/update/presentation/widgets/mandatory_update_view.dart": {
+    "mtime": 1794032143.6073966,
+    "seen": 1794043934.5096414,
+    "ast_hash": "75f0de2b6fc149e6aa02e646b3eb95d6",
+    "semantic_hash": "75f0de2b6fc149e6aa02e646b3eb95d6"
+  },
+  "lib/main.dart": {
+    "mtime": 1794029205.0066824,
+    "seen": 1794043934.509645,
+    "ast_hash": "14b9350bed4c9b9c492b5c5268e60263",
+    "semantic_hash": "14b9350bed4c9b9c492b5c5268e60263"
+  },
+  "linux/flutter/generated_plugin_registrant.cc": {
+    "mtime": 1787697975.4229677,
+    "seen": 1794043934.5096486,
+    "ast_hash": "1b238d11df96640fc6f4415e12cbda5f",
+    "semantic_hash": "1b238d11df96640fc6f4415e12cbda5f"
+  },
+  "linux/flutter/generated_plugin_registrant.h": {
+    "mtime": 1786796264.7961545,
+    "seen": 1794043934.5096524,
+    "ast_hash": "d295462c9da9f7fef22dc86c34492318",
+    "semantic_hash": "d295462c9da9f7fef22dc86c34492318"
+  },
+  "linux/runner/main.cc": {
+    "mtime": 1765555860.92697,
+    "seen": 1794043934.509656,
+    "ast_hash": "539395bcd63dba20afed0838d136189f",
+    "semantic_hash": "539395bcd63dba20afed0838d136189f"
+  },
+  "linux/runner/my_application.cc": {
+    "mtime": 1788678243.525964,
+    "seen": 1794043934.5096593,
+    "ast_hash": "120f7d83bc058f9255582ce411820333",
+    "semantic_hash": "120f7d83bc058f9255582ce411820333"
+  },
+  "linux/runner/my_application.h": {
+    "mtime": 1765555860.92697,
+    "seen": 1794043934.5096629,
+    "ast_hash": "ffa1a7c0a2ad45a2c14a921596516ff8",
+    "semantic_hash": "ffa1a7c0a2ad45a2c14a921596516ff8"
+  },
+  "macos/Flutter/GeneratedPluginRegistrant.swift": {
+    "mtime": 1789202831.4100912,
+    "seen": 1794043934.509667,
+    "ast_hash": "91a5dec77031307696c34f3431414d89",
+    "semantic_hash": "91a5dec77031307696c34f3431414d89"
+  },
+  "macos/RunnerTests/RunnerTests.swift": {
+    "mtime": 1786796245.5387151,
+    "seen": 1794043934.5096705,
+    "ast_hash": "8059f5d27a19c556eeafb49b3f9b7bdd",
+    "semantic_hash": "8059f5d27a19c556eeafb49b3f9b7bdd"
+  },
+  "macos/Runner/AppDelegate.swift": {
+    "mtime": 1765555860.92697,
+    "seen": 1794043934.509674,
+    "ast_hash": "4b52e0b89ebfef9baf45b04548c463d6",
+    "semantic_hash": "4b52e0b89ebfef9baf45b04548c463d6"
+  },
+  "macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json": {
+    "mtime": 1765555860.92697,
+    "seen": 1794043934.5096776,
+    "ast_hash": "1d48e925145d4b573a3b5d7960a1c585",
+    "semantic_hash": "1d48e925145d4b573a3b5d7960a1c585"
+  },
+  "macos/Runner/MainFlutterWindow.swift": {
+    "mtime": 1765555860.92697,
+    "seen": 1794043934.509681,
+    "ast_hash": "93c22dae2d93f3dc1402e121901f582b",
+    "semantic_hash": "93c22dae2d93f3dc1402e121901f582b"
+  },
+  "pubspec.yaml": {
+    "mtime": 1794029697.8860967,
+    "seen": 1794043934.5096846,
+    "ast_hash": "9ddca79671b620b7fe16a4adbd583469",
+    "semantic_hash": "9ddca79671b620b7fe16a4adbd583469"
+  },
+  "test/auth_repository_test.dart": {
+    "mtime": 1794030049.8282106,
+    "seen": 1794043934.509688,
+    "ast_hash": "c65fffc5ff88b73562be81537dd40310",
+    "semantic_hash": "c65fffc5ff88b73562be81537dd40310"
+  },
+  "test/helpers/in_memory_token_storage.dart": {
+    "mtime": 1794029944.180434,
+    "seen": 1794043934.5096915,
+    "ast_hash": "964ef0993bef10f524363c5ec7db8ccc",
+    "semantic_hash": "964ef0993bef10f524363c5ec7db8ccc"
+  },
+  "test/helpers/update_fakes.dart": {
+    "mtime": 1794030076.6556363,
+    "seen": 1794043934.509695,
+    "ast_hash": "21a670fb30974ca67c2856d601818c4e",
+    "semantic_hash": "21a670fb30974ca67c2856d601818c4e"
+  },
+  "test/json_parsers_test.dart": {
+    "mtime": 1794030049.8417466,
+    "seen": 1794043934.5096986,
+    "ast_hash": "1175a37e7e61513416695778d1c4f9c0",
+    "semantic_hash": "1175a37e7e61513416695778d1c4f9c0"
+  },
+  "test/lesson_notes_test.dart": {
+    "mtime": 1794030049.8589413,
+    "seen": 1794043934.509702,
+    "ast_hash": "62f8ed3d3ae442cf19f3b67a8f4fd8bb",
+    "semantic_hash": "62f8ed3d3ae442cf19f3b67a8f4fd8bb"
+  },
+  "test/profile_repository_test.dart": {
+    "mtime": 1794030020.623906,
+    "seen": 1794043934.5097055,
+    "ast_hash": "08dffd6a701d9992f90854573c2cc2e6",
+    "semantic_hash": "08dffd6a701d9992f90854573c2cc2e6"
+  },
+  "test/release_model_test.dart": {
+    "mtime": 1794030049.8684,
+    "seen": 1794043934.509709,
+    "ast_hash": "3ac2039bb522832cb472cc7b10a639f6",
+    "semantic_hash": "3ac2039bb522832cb472cc7b10a639f6"
+  },
+  "test/update_feature_test.dart": {
+    "mtime": 1789203252.0044017,
+    "seen": 1794043934.5097122,
+    "ast_hash": "3c349dae499048e7a91004606f63c325",
+    "semantic_hash": "3c349dae499048e7a91004606f63c325"
+  },
+  "test/update_flow_test.dart": {
+    "mtime": 1794032182.0558116,
+    "seen": 1794043934.5097158,
+    "ast_hash": "48afac64ba867cbc891495c519bdf04a",
+    "semantic_hash": "48afac64ba867cbc891495c519bdf04a"
+  },
+  "test/update_restart_test.dart": {
+    "mtime": 1794030049.882978,
+    "seen": 1794043934.5097191,
+    "ast_hash": "326acd57194b750efa4355cfc95991c6",
+    "semantic_hash": "326acd57194b750efa4355cfc95991c6"
+  },
+  "test/widget_test.dart": {
+    "mtime": 1794030049.8853552,
+    "seen": 1794043934.5097227,
+    "ast_hash": "58c226367965c9d179ad01f1c6bed7d9",
+    "semantic_hash": "58c226367965c9d179ad01f1c6bed7d9"
+  },
+  "test/youtube_url_parser_test.dart": {
+    "mtime": 1794030049.8901484,
+    "seen": 1794043934.509726,
+    "ast_hash": "07db663bb4d3e5010839e32656870565",
+    "semantic_hash": "07db663bb4d3e5010839e32656870565"
+  },
+  "web/manifest.json": {
+    "mtime": 1788678214.5124333,
+    "seen": 1794043934.5097294,
+    "ast_hash": "582266089660c42f3b421a5c51bf5807",
+    "semantic_hash": "582266089660c42f3b421a5c51bf5807"
+  },
+  "windows/flutter/generated_plugin_registrant.cc": {
+    "mtime": 1787697975.4379327,
+    "seen": 1794043934.5097332,
+    "ast_hash": "835b63c2ca1285c7adee1d14717e978f",
+    "semantic_hash": "835b63c2ca1285c7adee1d14717e978f"
+  },
+  "windows/flutter/generated_plugin_registrant.h": {
+    "mtime": 1786796264.812918,
+    "seen": 1794043934.5097368,
+    "ast_hash": "0ea33875f9f8e118f9c2ded03e2e2835",
+    "semantic_hash": "0ea33875f9f8e118f9c2ded03e2e2835"
+  },
+  "windows/runner/flutter_window.cpp": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.5097404,
+    "ast_hash": "2f463f9b7da67a2d692a012f9ea85e0c",
+    "semantic_hash": "2f463f9b7da67a2d692a012f9ea85e0c"
+  },
+  "windows/runner/flutter_window.h": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.509744,
+    "ast_hash": "7defcc89d4a26d56e801241d624d48fb",
+    "semantic_hash": "7defcc89d4a26d56e801241d624d48fb"
+  },
+  "windows/runner/main.cpp": {
+    "mtime": 1788678216.5415673,
+    "seen": 1794043934.5097473,
+    "ast_hash": "8b58b39f5d03aedd50b5ff7933938eea",
+    "semantic_hash": "8b58b39f5d03aedd50b5ff7933938eea"
+  },
+  "windows/runner/resource.h": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.5097508,
+    "ast_hash": "1ade5dd15e613479a15e8832ed276f2b",
+    "semantic_hash": "1ade5dd15e613479a15e8832ed276f2b"
+  },
+  "windows/runner/utils.cpp": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.5097542,
+    "ast_hash": "432461b09d862a2f8dadf380ff0e34e5",
+    "semantic_hash": "432461b09d862a2f8dadf380ff0e34e5"
+  },
+  "windows/runner/utils.h": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.509758,
+    "ast_hash": "fd81e143f5614eb6fd75efe539002853",
+    "semantic_hash": "fd81e143f5614eb6fd75efe539002853"
+  },
+  "windows/runner/win32_window.cpp": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.5097613,
+    "ast_hash": "571eb8234dbc2661be03aa5f2a4d2fca",
+    "semantic_hash": "571eb8234dbc2661be03aa5f2a4d2fca"
+  },
+  "windows/runner/win32_window.h": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.509765,
+    "ast_hash": "7569387d58711ab975940f4df3b4bcda",
+    "semantic_hash": "7569387d58711ab975940f4df3b4bcda"
+  },
+  "CHANGELOG.md": {
+    "mtime": 1794030510.4346168,
+    "seen": 1794043934.5097682,
+    "ast_hash": "fbfd89e4da80da61d2e14f303f7264ac",
+    "semantic_hash": "fbfd89e4da80da61d2e14f303f7264ac"
+  },
+  "CLAUDE.md": {
+    "mtime": 1794042340.994531,
+    "seen": 1794043934.5097718,
+    "ast_hash": "67d88e9d0760c3ba54c75dfd9551c1c5",
+    "semantic_hash": "67d88e9d0760c3ba54c75dfd9551c1c5"
+  },
+  "README.md": {
+    "mtime": 1794030544.688933,
+    "seen": 1794043934.5097754,
+    "ast_hash": "43e7f3749a33898997819500884b6023",
+    "semantic_hash": "43e7f3749a33898997819500884b6023"
+  },
+  "assets/fonts/Cairo-OFL.txt": {
+    "mtime": 1794028610.4382143,
+    "seen": 1794043934.5097787,
+    "ast_hash": "a81af1f762d65aae385547bc9d408788",
+    "semantic_hash": "a81af1f762d65aae385547bc9d408788"
+  },
+  "assets/fonts/Tajawal-OFL.txt": {
+    "mtime": 1794028611.1236453,
+    "seen": 1794043934.5097823,
+    "ast_hash": "d1eb27a3a8f2a203e12661c784af951e",
+    "semantic_hash": "d1eb27a3a8f2a203e12661c784af951e"
+  },
+  "docs/APP_FEATURE_REPORT.md": {
+    "mtime": 1794023817.005025,
+    "seen": 1794043934.5097861,
+    "ast_hash": "cb10047deef2513eb93cef12e140b753",
+    "semantic_hash": "cb10047deef2513eb93cef12e140b753"
+  },
+  "docs/CI_CD_RELEASE.md": {
+    "mtime": 1794030611.8233936,
+    "seen": 1794043934.5097897,
+    "ast_hash": "4a87ca5521b5a1fb8ed8921e0d939d00",
+    "semantic_hash": "4a87ca5521b5a1fb8ed8921e0d939d00"
+  },
+  "docs/CI_CD_REPORT.md": {
+    "mtime": 1794023876.9851148,
+    "seen": 1794043934.5097933,
+    "ast_hash": "064fbf3b0d8c870d05ed96d80f5ea375",
+    "semantic_hash": "064fbf3b0d8c870d05ed96d80f5ea375"
+  },
+  "docs/ENVIRONMENT.md": {
+    "mtime": 1794030562.1095896,
+    "seen": 1794043934.5097973,
+    "ast_hash": "5f795693e4f5637d078b72aa421ddc37",
+    "semantic_hash": "5f795693e4f5637d078b72aa421ddc37"
+  },
+  "docs/ROLLBACK.md": {
+    "mtime": 1794030639.7100184,
+    "seen": 1794043934.5098112,
+    "ast_hash": "04b0ef9ebec7e9828b866113ce7976a8",
+    "semantic_hash": "04b0ef9ebec7e9828b866113ce7976a8"
+  },
+  "docs/UPDATE_FLOW.md": {
+    "mtime": 1794032193.9945993,
+    "seen": 1794043934.5098183,
+    "ast_hash": "3691664c920ddfc8a6fafd7c6f23d69e",
+    "semantic_hash": "3691664c920ddfc8a6fafd7c6f23d69e"
+  },
+  "ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md": {
+    "mtime": 1765555860.9108672,
+    "seen": 1794043934.5098248,
+    "ast_hash": "f7ee1b402881509d197f34963e569927",
+    "semantic_hash": "f7ee1b402881509d197f34963e569927"
+  },
+  "linux/CMakeLists.txt": {
+    "mtime": 1786796244.5186462,
+    "seen": 1794043934.509831,
+    "ast_hash": "10e0f8c26c0bef25c998a846ddf21e59",
+    "semantic_hash": "10e0f8c26c0bef25c998a846ddf21e59"
+  },
+  "linux/flutter/CMakeLists.txt": {
+    "mtime": 1765555860.9264922,
+    "seen": 1794043934.5098376,
+    "ast_hash": "2195470ce31675d31db5a37590d011f6",
+    "semantic_hash": "2195470ce31675d31db5a37590d011f6"
+  },
+  "linux/runner/CMakeLists.txt": {
+    "mtime": 1765555860.92697,
+    "seen": 1794043934.5098486,
+    "ast_hash": "30cc1614b16214b66c014af09ba699eb",
+    "semantic_hash": "30cc1614b16214b66c014af09ba699eb"
+  },
+  "web/index.html": {
+    "mtime": 1788678214.892846,
+    "seen": 1794043934.5098553,
+    "ast_hash": "f8f2beaede3d33234873bc034220db99",
+    "semantic_hash": "f8f2beaede3d33234873bc034220db99"
+  },
+  "windows/CMakeLists.txt": {
+    "mtime": 1786796245.8792436,
+    "seen": 1794043934.5098617,
+    "ast_hash": "2e1b45d1fb470ad1b9ec80983757fd70",
+    "semantic_hash": "2e1b45d1fb470ad1b9ec80983757fd70"
+  },
+  "windows/flutter/CMakeLists.txt": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.5098681,
+    "ast_hash": "bbf66fed5180bd9ae8198b8d7c4a0001",
+    "semantic_hash": "bbf66fed5180bd9ae8198b8d7c4a0001"
+  },
+  "windows/runner/CMakeLists.txt": {
+    "mtime": 1765555860.9426165,
+    "seen": 1794043934.5098746,
+    "ast_hash": "028602ab9754bffe716659ada7590d29",
+    "semantic_hash": "028602ab9754bffe716659ada7590d29"
+  },
+  "assets/app_icon.png": {
+    "mtime": 1787907014.9342976,
+    "seen": 1794043934.509881,
+    "ast_hash": "5212d7123822d7a79e2059cf22b48844",
+    "semantic_hash": "5212d7123822d7a79e2059cf22b48844"
+  },
+  "assets/item2.png": {
+    "mtime": 1786886486.213664,
+    "seen": 1794043934.5098875,
+    "ast_hash": "73e4b84d2501c82d56a2021fc0076d13",
+    "semantic_hash": "73e4b84d2501c82d56a2021fc0076d13"
+  },
+  "assets/item3.png": {
+    "mtime": 1786886619.5517967,
+    "seen": 1794043934.509894,
+    "ast_hash": "a692d2ddd4cfc23513c1ef02c991e2f9",
+    "semantic_hash": "a692d2ddd4cfc23513c1ef02c991e2f9"
+  },
+  "assets/onboarding1.png": {
+    "mtime": 1786871931.1187427,
+    "seen": 1794043934.5099003,
+    "ast_hash": "40d8ef1fe2899701d2aa4634a64a8c7d",
+    "semantic_hash": "40d8ef1fe2899701d2aa4634a64a8c7d"
+  },
+  "assets/onboarding2.png": {
+    "mtime": 1786872173.458522,
+    "seen": 1794043934.5099068,
+    "ast_hash": "37ea25860bb9dab3802005d4601e6d5a",
+    "semantic_hash": "37ea25860bb9dab3802005d4601e6d5a"
+  }
+}

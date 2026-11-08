@@ -13,10 +13,14 @@ class ProfileLoading extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
   final StudentProfileModel profile;
-  const ProfileLoaded(this.profile);
+
+  /// True when the displayed profile comes from cache because a refresh failed.
+  final bool isStale;
+
+  const ProfileLoaded(this.profile, {this.isStale = false});
 
   @override
-  List<Object?> get props => [profile];
+  List<Object?> get props => [profile, isStale];
 }
 
 class ProfileError extends ProfileState {

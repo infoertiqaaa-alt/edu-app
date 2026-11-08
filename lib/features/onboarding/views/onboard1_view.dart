@@ -18,7 +18,10 @@ class Onboard1View extends StatelessWidget {
                 children: [
                   Gap(100.h),
                   Padding(
-                    padding:  EdgeInsets.symmetric(horizontal: 20.w,vertical: 20.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 20.h,
+                    ),
                     child: Image.asset(
                       'assets/onboarding1.png',
                       width: double.infinity,

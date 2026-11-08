@@ -14,20 +14,21 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'];
     return UserModel(
-      id: json['id'].toString(),
+      id: rawId == null ? '' : rawId.toString(),
       name: json['name']?.toString(),
-      username: json['username'] ?? json['name'] ?? '',
+      username: (json['username'] ?? json['name'] ?? '').toString(),
       role: json['role']?.toString(),
-      email: json['email'],
+      email: json['email']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'username': username,
-        'role': role,
-        'email': email,
-      };
+    'id': id,
+    'name': name,
+    'username': username,
+    'role': role,
+    'email': email,
+  };
 }

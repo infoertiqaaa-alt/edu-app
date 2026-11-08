@@ -11,7 +11,8 @@ class ScanQrRepositoryImpl implements ScanQrRepository {
 
   @override
   Future<Either<Failure, ScannedStudentModel>> scanStudent(
-      String qrCodeString) async {
+    String qrCodeString,
+  ) async {
     try {
       final student = await remoteDataSource.scanStudent(qrCodeString);
       return Right(student);

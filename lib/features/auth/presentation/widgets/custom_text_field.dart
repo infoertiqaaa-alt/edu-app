@@ -29,14 +29,21 @@ class CustomTextField extends StatelessWidget {
       style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: AppColors.hintText, fontSize: 16,fontWeight: FontWeight.w800),
+        hintStyle: const TextStyle(
+          color: AppColors.hintText,
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+        ),
         filled: true,
         fillColor: AppColors.textFieldFill,
         suffixIcon: suffixIcon,
-        prefixIcon:
-            prefixIcon != null ? Icon(prefixIcon, color: AppColors.hintText) : null,
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, color: AppColors.hintText)
+            : null,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,

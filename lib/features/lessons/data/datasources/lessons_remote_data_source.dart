@@ -17,20 +17,20 @@ class LessonsRemoteDataSourceImpl implements LessonsRemoteDataSource {
   @override
   Future<List<LessonModel>> getLessons() async {
     final response = await dio.get(ApiConstants.lessons);
-    final apiResponse = ApiResponse<List<LessonModel>>.fromJson(
+    return ApiResponse.requireData(
       response.data,
       (json) => (json as List).map((e) => LessonModel.fromJson(e)).toList(),
+      failureMessage: 'تعذر تحميل الدروس',
     );
-    return apiResponse.data!;
   }
 
   @override
   Future<LessonDetailModel> getLessonDetail(int id) async {
     final response = await dio.get('${ApiConstants.lessons}/$id');
-    final apiResponse = ApiResponse<LessonDetailModel>.fromJson(
+    return ApiResponse.requireData(
       response.data,
       (json) => LessonDetailModel.fromJson(json),
+      failureMessage: 'تعذر تحميل تفاصيل الدرس',
     );
-    return apiResponse.data!;
   }
 }

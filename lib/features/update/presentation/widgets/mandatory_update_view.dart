@@ -11,7 +11,9 @@ import '../cubit/update_state.dart';
 ///
 /// - مفيش زر X ولا Cancel ولا Skip ولا Later.
 /// - الـ back button مقفول (PopScope).
-/// - مفيش أي طريقة لتجاوز التحديث.
+/// - الاستثناء الوحيد: لو فشل التنزيل/التحقق/التثبيت مرتين متتاليتين، يظهر زر
+///   "المتابعة إلى التطبيق مؤقتًا" عشان عطل في الملف أو الشبكة ميقفلش التطبيق
+///   نهائيًا على المستخدم. التحديث بيتفحص تاني في كل تشغيل.
 class MandatoryUpdateView extends StatelessWidget {
   const MandatoryUpdateView({super.key});
 
@@ -34,8 +36,11 @@ class MandatoryUpdateView extends StatelessWidget {
                   builder: (context, state) {
                     final title = switch (state) {
                       UpdateDownloading() => 'جاري تنزيل التحديث...',
+                      UpdateValidating() => 'جاري التحقق من التحديث...',
                       UpdateDownloadFailed() => 'فشل تنزيل التحديث',
-                      UpdateInstallStarted() => 'جاري فتح المثبّت...',
+                      UpdateValidationFailed() => 'ملف التحديث غير صالح',
+                      UpdateInstallPermissionRequired() => 'مطلوب إذن التثبيت',
+                      UpdateInstallStarted() => 'أكمل التثبيت',
                       UpdateInstallFailed() => 'فشل بدء التثبيت',
                       _ => 'نسخة جديدة متاحة',
                     };
@@ -96,12 +101,7 @@ class MandatoryUpdateView extends StatelessWidget {
           ),
         ],
       ),
-      UpdateDownloadFailed(:final message) => _FailureBody(
-        message: message,
-        actionLabel: 'إعادة المحاولة',
-        onAction: cubit.startUpdate,
-      ),
-      UpdateInstallStarted() => const Padding(
+      UpdateValidating() => const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -116,17 +116,50 @@ class MandatoryUpdateView extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'يتم الآن فتح أداة تثبيت التطبيقات...',
+              'يتم التحقق من سلامة الملف وتوقيعه قبل التثبيت...',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
           ],
         ),
       ),
+      UpdateDownloadFailed(:final message) => _FailureBody(
+        message: message,
+        actionLabel: 'إعادة المحاولة',
+        onAction: cubit.startUpdate,
+        onContinue: cubit.canContinueOffline
+            ? cubit.continueWithoutUpdate
+            : null,
+      ),
+      UpdateValidationFailed(:final message) => _FailureBody(
+        message: message,
+        actionLabel: 'إعادة المحاولة',
+        onAction: cubit.startUpdate,
+        onContinue: cubit.canContinueOffline
+            ? cubit.continueWithoutUpdate
+            : null,
+      ),
+      UpdateInstallPermissionRequired() => _PermissionBody(
+        onOpenSettings: cubit.openInstallPermissionSettings,
+        onRetry: cubit.startUpdate,
+      ),
+      UpdateInstallStarted() => _FailureBody(
+        message:
+            'تم فتح أداة تثبيت التطبيقات. أكمل التثبيت من الشاشة التي ظهرت. '
+            'إذا ألغيت التثبيت أو لم تكتمل العملية، اضغط إعادة المحاولة.',
+        actionLabel: 'إعادة فتح المثبّت',
+        onAction: cubit.startUpdate,
+        onContinue: cubit.canContinueOffline
+            ? cubit.continueWithoutUpdate
+            : null,
+      ),
       UpdateInstallFailed(:final message) => _FailureBody(
         message: message,
         actionLabel: 'إعادة المحاولة',
         onAction: cubit.startUpdate,
+        onContinue: cubit.canContinueOffline
+            ? cubit.continueWithoutUpdate
+            : null,
       ),
       _ => const SizedBox.shrink(),
     };
@@ -135,7 +168,10 @@ class MandatoryUpdateView extends StatelessWidget {
   IconData _iconFor(UpdateState state) {
     return switch (state) {
       UpdateDownloading() => Icons.download_rounded,
+      UpdateValidating() => Icons.verified_user_rounded,
       UpdateDownloadFailed() => Icons.error_outline_rounded,
+      UpdateValidationFailed() => Icons.gpp_bad_rounded,
+      UpdateInstallPermissionRequired() => Icons.settings_applications_rounded,
       UpdateInstallStarted() => Icons.system_update_alt_rounded,
       UpdateInstallFailed() => Icons.error_outline_rounded,
       _ => Icons.new_releases_rounded,
@@ -239,15 +275,77 @@ class _UpdateAvailableBody extends StatelessWidget {
   }
 }
 
+class _PermissionBody extends StatelessWidget {
+  final VoidCallback onOpenSettings;
+  final VoidCallback onRetry;
+
+  const _PermissionBody({required this.onOpenSettings, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          'يحتاج التطبيق إلى إذن "تثبيت التطبيقات غير المعروفة" لإكمال التحديث. '
+          'افتح الإعدادات وامنح الإذن ثم اضغط إعادة المحاولة.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.6,
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: onOpenSettings,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              'فتح إعدادات التثبيت',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeightHelper.bold),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextButton(
+          onPressed: onRetry,
+          child: const Text(
+            'إعادة المحاولة',
+            style: TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeightHelper.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _FailureBody extends StatelessWidget {
   final String message;
   final String actionLabel;
   final VoidCallback onAction;
 
+  /// Shown only after the same update failed repeatedly, so a broken or
+  /// unreachable artifact cannot lock users out of the app forever.
+  final VoidCallback? onContinue;
+
   const _FailureBody({
     required this.message,
     required this.actionLabel,
     required this.onAction,
+    this.onContinue,
   });
 
   @override
@@ -287,6 +385,19 @@ class _FailureBody extends StatelessWidget {
             ),
           ),
         ),
+        if (onContinue != null) ...[
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onContinue,
+            child: const Text(
+              'المتابعة إلى التطبيق مؤقتًا',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeightHelper.bold,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

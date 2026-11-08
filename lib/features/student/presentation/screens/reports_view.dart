@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/utils/number_formatter.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import 'package:mr/core/widgets/student_avatar.dart';
@@ -76,27 +77,24 @@ class _ReportsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.primary
-      ),
+      decoration: const BoxDecoration(color: AppColors.primary),
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
           child: Row(
             children: [
-             
               const Spacer(),
               Text(
                 'التقارير',
-                style: GoogleFonts.cairo(
+                style: AppFonts.cairo(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
               const Spacer(),
-              SizedBox( height: 70.w),
+              SizedBox(height: 70.w),
             ],
           ),
         ),
@@ -128,10 +126,7 @@ class _ReportsError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: GoogleFonts.cairo(
-                fontSize: 15,
-                color: AppColors.textPrimary,
-              ),
+              style: AppFonts.cairo(fontSize: 15, color: AppColors.textPrimary),
             ),
             SizedBox(height: 16.h),
             ElevatedButton(
@@ -145,7 +140,7 @@ class _ReportsError extends StatelessWidget {
               ),
               child: Text(
                 'حاول تاني',
-                style: GoogleFonts.cairo(color: Colors.white),
+                style: AppFonts.cairo(color: Colors.white),
               ),
             ),
           ],
@@ -217,7 +212,7 @@ class _StudentSummaryCard extends StatelessWidget {
                 if (name.isNotEmpty)
                   Text(
                     name,
-                    style: GoogleFonts.cairo(
+                    style: AppFonts.cairo(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
@@ -227,7 +222,7 @@ class _StudentSummaryCard extends StatelessWidget {
                   SizedBox(height: 4.h),
                   Text(
                     'كود الطالب: $code',
-                    style: GoogleFonts.cairo(
+                    style: AppFonts.cairo(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -237,7 +232,7 @@ class _StudentSummaryCard extends StatelessWidget {
                   SizedBox(height: 4.h),
                   Text(
                     groupText,
-                    style: GoogleFonts.cairo(
+                    style: AppFonts.cairo(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
@@ -327,7 +322,7 @@ class _AttendanceRecordRow extends StatelessWidget {
         Expanded(
           child: Text(
             formattedDate ?? 'تاريخ الحضور',
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -355,7 +350,10 @@ class _FinancialSectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _StatRow(label: 'إجمالي المعاملات المالية', value: total.toString()),
+          _StatRow(
+            label: 'إجمالي المعاملات المالية',
+            value: NumberFormatter.formatNumber(total),
+          ),
           SizedBox(height: 16.h),
           if (hasRecords)
             _FinancialRecordsList(records: records)
@@ -395,7 +393,7 @@ class _FinancialRecordRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final values = record.data.values
         .where((value) => value != null && value.toString().trim().isNotEmpty)
-        .map((value) => value.toString())
+        .map(NumberFormatter.formatDynamic)
         .join(' - ');
 
     return Row(
@@ -417,7 +415,7 @@ class _FinancialRecordRow extends StatelessWidget {
         Expanded(
           child: Text(
             values.isEmpty ? 'معاملة مالية' : values,
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -458,7 +456,7 @@ class _ReportCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.cairo(
+                  style: AppFonts.cairo(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -488,14 +486,11 @@ class _StatRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: GoogleFonts.cairo(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
+          style: AppFonts.cairo(fontSize: 13, color: AppColors.textSecondary),
         ),
         Text(
           value,
-          style: GoogleFonts.cairo(
+          style: AppFonts.cairo(
             fontSize: 15,
             fontWeight: FontWeight.w800,
             color: AppColors.primary,
@@ -526,10 +521,7 @@ class _EmptyState extends StatelessWidget {
           SizedBox(height: 8.h),
           Text(
             message,
-            style: GoogleFonts.cairo(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-            ),
+            style: AppFonts.cairo(fontSize: 13, color: AppColors.textSecondary),
           ),
         ],
       ),

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
-import 'package:mr/core/extensions/context_extensions.dart';
-import 'package:mr/core/routing/routes.dart';
-import 'package:mr/core/storage/token_storage.dart';
+import 'package:mr/core/session/session_manager.dart';
 import 'package:mr/core/theme/app_colors.dart';
 import 'package:mr/features/assistant/scan_qr_code/presentation/widgets/info_section_card.dart';
 import 'package:mr/core/widgets/student_avatar.dart';
+import '../../domain/repositories/profile_repository.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 
@@ -34,8 +33,9 @@ class _ProfileBody extends StatelessWidget {
     final imageUrl = value?.trim();
     if (imageUrl == null || imageUrl.isEmpty) return null;
 
-    final markdownMatch =
-        RegExp(r'^\[[^\]]*\]\((https?://[^)]+)\)$').firstMatch(imageUrl);
+    final markdownMatch = RegExp(
+      r'^\[[^\]]*\]\((https?://[^)]+)\)$',
+    ).firstMatch(imageUrl);
     return markdownMatch?.group(1) ?? imageUrl;
   }
 
@@ -48,7 +48,9 @@ class _ProfileBody extends StatelessWidget {
         body: BlocBuilder<ProfileCubit, ProfileState>(
           builder: (context, state) {
             if (state is ProfileLoading || state is ProfileInitial) {
-              return Center(child: CircularProgressIndicator(color: AppColors.primary));
+              return Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
 
             if (state is ProfileError) {
@@ -59,20 +61,18 @@ class _ProfileBody extends StatelessWidget {
                     Text(
                       state.message,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.cairo(
-                        fontSize: 14,
-                        color: Colors.red,
-                      ),
+                      style: AppFonts.cairo(fontSize: 14, color: Colors.red),
                     ),
                     SizedBox(height: 12.h),
                     ElevatedButton(
-                      onPressed: () => context.read<ProfileCubit>().getProfile(),
+                      onPressed: () =>
+                          context.read<ProfileCubit>().getProfile(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                       ),
                       child: Text(
                         'إعادة المحاولة',
-                        style: GoogleFonts.cairo(color: Colors.white),
+                        style: AppFonts.cairo(color: Colors.white),
                       ),
                     ),
                   ],
@@ -112,7 +112,7 @@ class _ProfileBody extends StatelessWidget {
                           children: [
                             Text(
                               student.name,
-                              style: GoogleFonts.cairo(
+                              style: AppFonts.cairo(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -121,7 +121,7 @@ class _ProfileBody extends StatelessWidget {
                             if (student.username.isNotEmpty)
                               Text(
                                 '@${student.username}',
-                                style: GoogleFonts.cairo(
+                                style: AppFonts.cairo(
                                   fontSize: 13,
                                   color: Colors.black54,
                                 ),
@@ -129,7 +129,7 @@ class _ProfileBody extends StatelessWidget {
                             SizedBox(height: 2.h),
                             Text(
                               student.grade,
-                              style: GoogleFonts.cairo(
+                              style: AppFonts.cairo(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
@@ -160,13 +160,18 @@ class _ProfileBody extends StatelessWidget {
                                     value: student.dob,
                                   ),
                                 InfoRowData(
-                                    label: 'الاسم الكامل', value: student.name),
+                                  label: 'الاسم الكامل',
+                                  value: student.name,
+                                ),
                                 if (student.email.isNotEmpty)
                                   InfoRowData(
-                                      label: 'البريد الإلكتروني',
-                                      value: student.email),
+                                    label: 'البريد الإلكتروني',
+                                    value: student.email,
+                                  ),
                                 InfoRowData(
-                                    label: 'رقم هاتف للتواصل', value: student.phone),
+                                  label: 'رقم هاتف للتواصل',
+                                  value: student.phone,
+                                ),
                               ],
                             ),
 
@@ -176,11 +181,13 @@ class _ProfileBody extends StatelessWidget {
                               title: 'ولي الأمر',
                               rows: [
                                 InfoRowData(
-                                    label: 'اسم ولي الأمر',
-                                    value: student.guardianName),
+                                  label: 'اسم ولي الأمر',
+                                  value: student.guardianName,
+                                ),
                                 InfoRowData(
-                                    label: 'رقم هاتف التواصل',
-                                    value: student.guardianPhone),
+                                  label: 'رقم هاتف التواصل',
+                                  value: student.guardianPhone,
+                                ),
                               ],
                             ),
 
@@ -191,15 +198,11 @@ class _ProfileBody extends StatelessWidget {
                               height: 52.h,
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  await sl<TokenStorage>().clearToken();
-                                  if (!context.mounted) return;
-                                  context.pushUntil(
-                                    Routes.loginScreen,
-                                    (route) => false,
-                                  );
+                                  sl<ProfileRepository>().clearCache();
+                                  await sl<SessionManager>().logout();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:const Color(0xFF3E8E4F),
+                                  backgroundColor: const Color(0xFF3E8E4F),
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14.r),
@@ -207,7 +210,7 @@ class _ProfileBody extends StatelessWidget {
                                 ),
                                 child: Text(
                                   'تسجيل الخروج',
-                                  style: GoogleFonts.cairo(
+                                  style: AppFonts.cairo(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,

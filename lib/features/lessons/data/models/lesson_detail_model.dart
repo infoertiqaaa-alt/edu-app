@@ -1,3 +1,5 @@
+import 'package:mr/core/utils/json_parsers.dart';
+
 class LessonDetailModel {
   final int id;
   final String chapterName;
@@ -31,22 +33,19 @@ class LessonDetailModel {
 
   factory LessonDetailModel.fromJson(Map<String, dynamic> json) {
     return LessonDetailModel(
-      id: json['id'] ?? 0,
-      chapterName: json['chapter_name'] ?? '',
-      title: json['title'] ?? '',
-      durationMinutes: json['duration_minutes'] ?? 0,
-      videoUrl: json['video_url'] ?? '',
-      thumbnailUrl: json['thumbnail_url'] ?? '',
-      aboutLesson: json['about_lesson'] ?? '',
-      whatYouWillLearn: (json['what_you_will_learn'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      notes: json['notes'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
-      previousLessonId: json['previous_lesson_id'],
-      nextLessonId: json['next_lesson_id'],
+      id: JsonParsers.asIntOr(json['id'], 0),
+      chapterName: JsonParsers.asString(json['chapter_name']),
+      title: JsonParsers.asString(json['title']),
+      durationMinutes: JsonParsers.asIntOr(json['duration_minutes'], 0),
+      videoUrl: JsonParsers.asString(json['video_url']),
+      thumbnailUrl: JsonParsers.asString(json['thumbnail_url']),
+      aboutLesson: JsonParsers.asString(json['about_lesson']),
+      whatYouWillLearn: JsonParsers.asStringList(json['what_you_will_learn']),
+      notes: JsonParsers.asString(json['notes']),
+      createdAt: JsonParsers.asString(json['created_at']),
+      updatedAt: JsonParsers.asString(json['updated_at']),
+      previousLessonId: JsonParsers.asInt(json['previous_lesson_id']),
+      nextLessonId: JsonParsers.asInt(json['next_lesson_id']),
     );
   }
 }

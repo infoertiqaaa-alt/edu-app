@@ -1,3 +1,5 @@
+import 'package:mr/core/utils/json_parsers.dart';
+
 class StudentProfileModel {
   final int id;
   final String name;
@@ -29,18 +31,18 @@ class StudentProfileModel {
 
   factory StudentProfileModel.fromJson(Map<String, dynamic> json) {
     return StudentProfileModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      username: json['username'] ?? '',
-      phone: json['phone'] ?? '',
-      email: json['email'] ?? '',
-      qrCodeString: json['qr_code_string'] ?? '',
-      studentCode: json['student_code'] ?? '',
-      grade: json['grade'] ?? '',
-      profileImage: json['profile_image'],
-      dob: json['dob'] ?? '',
-      guardianName: json['guardian_name'] ?? '',
-      guardianPhone: json['guardian_phone'] ?? '',
+      id: JsonParsers.asIntOr(json['id'], 0),
+      name: JsonParsers.asString(json['name']),
+      username: JsonParsers.asString(json['username']),
+      phone: JsonParsers.asString(json['phone']),
+      email: JsonParsers.asString(json['email']),
+      qrCodeString: JsonParsers.asString(json['qr_code_string']),
+      studentCode: JsonParsers.asString(json['student_code']),
+      grade: JsonParsers.asString(json['grade']),
+      profileImage: JsonParsers.asNullableString(json['profile_image']),
+      dob: JsonParsers.asString(json['dob']),
+      guardianName: JsonParsers.asString(json['guardian_name']),
+      guardianPhone: JsonParsers.asString(json['guardian_phone']),
     );
   }
 }

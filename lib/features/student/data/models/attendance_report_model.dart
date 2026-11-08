@@ -1,3 +1,5 @@
+import 'package:mr/core/utils/json_parsers.dart';
+
 class AttendanceReportModel {
   final int total;
   final List<AttendanceRecordModel> records;
@@ -5,17 +7,11 @@ class AttendanceReportModel {
   const AttendanceReportModel({required this.total, required this.records});
 
   factory AttendanceReportModel.fromJson(Map<String, dynamic> json) {
-    final recordsJson = json['records'];
     return AttendanceReportModel(
-      total: json['total'] ?? 0,
-      records: recordsJson is List
-          ? recordsJson
-                .map(
-                  (e) =>
-                      AttendanceRecordModel.fromJson(e as Map<String, dynamic>),
-                )
-                .toList()
-          : const [],
+      total: JsonParsers.asIntOr(json['total'], 0),
+      records: JsonParsers.asMapList(
+        json['records'],
+      ).map(AttendanceRecordModel.fromJson).toList(),
     );
   }
 }
@@ -27,6 +23,9 @@ class AttendanceRecordModel {
   const AttendanceRecordModel({required this.id, required this.date});
 
   factory AttendanceRecordModel.fromJson(Map<String, dynamic> json) {
-    return AttendanceRecordModel(id: json['id'] ?? 0, date: json['date'] ?? '');
+    return AttendanceRecordModel(
+      id: JsonParsers.asIntOr(json['id'], 0),
+      date: JsonParsers.asString(json['date']),
+    );
   }
 }

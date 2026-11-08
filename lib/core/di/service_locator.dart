@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import '../network/dio_client.dart';
+import '../session/session_manager.dart';
 import '../storage/token_storage.dart';
 import '../storage/onboarding_storage.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
@@ -31,6 +32,8 @@ import '../../features/lessons/data/repositories/lesson_notes_repository_impl.da
 import '../../features/lessons/domain/repositories/lesson_notes_repository.dart';
 import '../../features/update/data/datasources/release_remote_data_source.dart';
 import '../../features/update/data/datasources/apk_installer.dart';
+import '../../features/update/data/datasources/apk_inspector.dart';
+import '../../features/update/data/services/apk_validation_service.dart';
 import '../../features/update/data/repositories/update_repository_impl.dart';
 import '../../features/update/domain/repositories/update_repository.dart';
 import '../../features/update/domain/usecases/get_latest_release.dart';
@@ -41,8 +44,13 @@ final sl = GetIt.instance;
 
 Future<void> setupServiceLocator() async {
   sl.registerLazySingleton<TokenStorage>(() => TokenStorage());
+  sl.registerLazySingleton<SessionManager>(
+    () => SessionManager(sl<TokenStorage>()),
+  );
   sl.registerLazySingleton<OnboardingStorage>(() => OnboardingStorage());
-  sl.registerLazySingleton<DioClient>(() => DioClient(sl()));
+  sl.registerLazySingleton<DioClient>(
+    () => DioClient(sl<TokenStorage>(), sl<SessionManager>()),
+  );
 
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl<DioClient>().dio),
@@ -63,7 +71,7 @@ Future<void> setupServiceLocator() async {
   );
 
   sl.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(sl()),
+    () => ProfileRepositoryImpl(sl(), tokenStorage: sl<TokenStorage>()),
   );
 
   sl.registerFactory<ProfileCubit>(() => ProfileCubit(sl()));
@@ -99,7 +107,7 @@ Future<void> setupServiceLocator() async {
   // Notes Feature Registration (Local DB)
   sl.registerLazySingleton<NotesDatabase>(() => NotesDatabase.instance);
   sl.registerLazySingleton<LessonNotesRepository>(
-    () => LessonNotesRepositoryImpl(sl()),
+    () => LessonNotesRepositoryImpl(sl(), sl<TokenStorage>()),
   );
   sl.registerFactory<LessonNotesCubit>(() => LessonNotesCubit(sl()));
 
@@ -109,6 +117,10 @@ Future<void> setupServiceLocator() async {
   );
   sl.registerLazySingleton<UpdateRepository>(() => UpdateRepositoryImpl(sl()));
   sl.registerLazySingleton<ApkInstaller>(() => ApkInstaller());
+  sl.registerLazySingleton<ApkInspector>(() => NativeApkInspector());
+  sl.registerLazySingleton<ApkValidationService>(
+    () => ApkValidationService(sl<ApkInspector>()),
+  );
   sl.registerFactory<GetLatestRelease>(
     () => GetLatestRelease(sl<UpdateRepository>()),
   );
@@ -120,6 +132,8 @@ Future<void> setupServiceLocator() async {
       sl<GetLatestRelease>(),
       sl<DownloadReleaseApk>(),
       sl<ApkInstaller>(),
+      sl<ApkInspector>(),
+      sl<ApkValidationService>(),
     ),
   );
 }

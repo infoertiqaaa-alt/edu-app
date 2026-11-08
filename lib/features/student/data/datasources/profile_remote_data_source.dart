@@ -15,10 +15,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<StudentProfileModel> getProfile() async {
     final response = await dio.get(ApiConstants.studentProfile);
-    final apiResponse = ApiResponse<StudentProfileModel>.fromJson(
+    return ApiResponse.requireData(
       response.data,
       (json) => StudentProfileModel.fromJson(json),
+      failureMessage: 'تعذر تحميل الملف الشخصي',
     );
-    return apiResponse.data!;
   }
-} 
+}

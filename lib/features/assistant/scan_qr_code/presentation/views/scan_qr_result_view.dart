@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/theme/app_colors.dart';
@@ -28,8 +28,9 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
     final imageUrl = value?.trim();
     if (imageUrl == null || imageUrl.isEmpty) return null;
 
-    final markdownMatch =
-        RegExp(r'^\[[^\]]*\]\((https?://[^)]+)\)$').firstMatch(imageUrl);
+    final markdownMatch = RegExp(
+      r'^\[[^\]]*\]\((https?://[^)]+)\)$',
+    ).firstMatch(imageUrl);
     return markdownMatch?.group(1) ?? imageUrl;
   }
 
@@ -37,8 +38,9 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
     if (_isRegistering) return;
 
     setState(() => _isRegistering = true);
-    final failure =
-        await context.read<ScanQrCubit>().registerAttendance(studentId);
+    final failure = await context.read<ScanQrCubit>().registerAttendance(
+      studentId,
+    );
 
     if (!mounted) return;
     setState(() => _isRegistering = false);
@@ -54,7 +56,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
       SnackBar(
         content: Text(
           'تم تسجيل الحضور بنجاح',
-          style: GoogleFonts.cairo(
+          style: AppFonts.cairo(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -68,10 +70,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
       ),
     );
 
-    context.pushUntil(
-      Routes.scanQrEntry,
-      (route) => false,
-    );
+    context.pushUntil(Routes.scanQrEntry, (route) => false);
   }
 
   @override
@@ -84,7 +83,9 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
           builder: (context, state) {
             if (state is! ScanQrSuccess) {
               // مفروض ميوصلش هنا غير لما يبقى فيه بيانات، بس احتياطًا
-              return Center(child: CircularProgressIndicator(color: AppColors.primary));
+              return Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
 
             final student = state.student;
@@ -105,7 +106,6 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                           colors: [AppColors.primary, AppColors.primaryDark],
                         ),
                       ),
-                     
                     ),
 
                     // ---- الجسم ----
@@ -120,7 +120,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                           children: [
                             Text(
                               student.name,
-                              style: GoogleFonts.cairo(
+                              style: AppFonts.cairo(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -129,7 +129,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                             if (student.studentNumber?.isNotEmpty ?? false)
                               Text(
                                 'رقم الطالب: #${student.studentNumber}',
-                                style: GoogleFonts.cairo(
+                                style: AppFonts.cairo(
                                   fontSize: 13,
                                   color: Colors.black54,
                                 ),
@@ -137,7 +137,7 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                             SizedBox(height: 2.h),
                             Text(
                               student.grade,
-                              style: GoogleFonts.cairo(
+                              style: AppFonts.cairo(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
@@ -168,9 +168,13 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                                     value: student.dob,
                                   ),
                                 InfoRowData(
-                                    label: 'الاسم الكامل', value: student.name),
+                                  label: 'الاسم الكامل',
+                                  value: student.name,
+                                ),
                                 InfoRowData(
-                                    label: 'رقم هاتف للتواصل', value: student.phone),
+                                  label: 'رقم هاتف للتواصل',
+                                  value: student.phone,
+                                ),
                               ],
                             ),
 
@@ -180,11 +184,13 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                               title: 'ولي الأمر',
                               rows: [
                                 InfoRowData(
-                                    label: 'اسم ولي الأمر',
-                                    value: student.guardianName),
+                                  label: 'اسم ولي الأمر',
+                                  value: student.guardianName,
+                                ),
                                 InfoRowData(
-                                    label: 'رقم هاتف التواصل',
-                                    value: student.guardianPhone),
+                                  label: 'رقم هاتف التواصل',
+                                  value: student.guardianPhone,
+                                ),
                               ],
                             ),
 
@@ -193,27 +199,39 @@ class _ScanQrResultViewState extends State<ScanQrResultView> {
                             SizedBox(
                               width: double.infinity,
                               height: 52.h,
+                              // Calls POST /assistant/attendance/register via
+                              // ScanQrCubit. Disabled while the request runs so
+                              // a double tap cannot register attendance twice.
                               child: ElevatedButton(
-                                onPressed: () {
-                                   _registerAttendance(student.id);
-                                  // TODO: نادِ هنا endpoint تسجيل الحضور لما يبقى جاهز
-                                  // مثال: context.read<AttendanceCubit>().checkIn(student.id);
-                                },
+                                onPressed: _isRegistering
+                                    ? null
+                                    : () => _registerAttendance(student.id),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
+                                  disabledBackgroundColor: AppColors.primary
+                                      .withValues(alpha: 0.6),
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14.r),
                                   ),
                                 ),
-                                child: Text(
-                                  'تسجيل الحضور',
-                                  style: GoogleFonts.cairo(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                child: _isRegistering
+                                    ? SizedBox(
+                                        width: 22.r,
+                                        height: 22.r,
+                                        child: const CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : Text(
+                                        'تسجيل الحضور',
+                                        style: AppFonts.cairo(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                               ),
                             ),
                             SizedBox(height: 24.h),

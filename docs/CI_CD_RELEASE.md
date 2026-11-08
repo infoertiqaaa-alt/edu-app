@@ -1,314 +1,190 @@
-# CI/CD Release Pipeline
+# CI/CD release pipeline
 
-This document describes the automated Android APK release pipeline for the **MR** Flutter app.
+This repository uses two GitHub Actions workflows:
 
-The pipeline lives entirely in GitHub Actions and is triggered automatically when the app version
-and/or the changelog change on `main`. It builds a **signed release APK**, uploads it to the
-production server over **SCP/SSH**, and publishes release metadata to the **Backend API**, then
-verifies that the Backend is serving the new release before the workflow can succeed.
+| Workflow | File | Trigger | Purpose |
+| --- | --- | --- | --- |
+| CI | `.github/workflows/ci.yml` | every pull request, pushes to `main`, manual | Formatting, analysis, tests and a Debug APK build |
+| Release | `.github/workflows/release.yml` | push to `main` changing `pubspec.yaml` or `CHANGELOG.md`, manual | Build, verify, upload and publish a signed release APK |
 
----
+Both workflows use least-privilege permissions (`contents: read`) and pinned
+tool versions:
 
-## 1. How versioning works
+- Flutter `3.47.9`
+- Java 17 (Temurin)
+- GitHub Actions pinned to commit SHAs
 
-The single source of truth is **`pubspec.yaml`**:
+## Versioning
 
-```yaml
-version: 2.1.0+2
-```
-
-- `2.1.0` → **version_name** (user-facing semantic version)
-- `2` → **version_code** (Android build number / unique integer)
-
-The pipeline extracts both automatically. You **never** hard-code a version in GitHub Actions.
-
-The APK filename is generated deterministically:
-
-```
-app-v${version_name}.apk
-```
-
-Example: `version: 2.1.0+2` → `app-v2.1.0.apk`
-
----
-
-## 2. How the pipeline works (stage by stage)
-
-1. **Checkout** — clone the repo.
-2. **Setup Java 17** — Java 17 is required by the project's Gradle/AGP config (see
-   `android/app/build.gradle.kts` → `JavaVersion.VERSION_17`).
-3. **Setup Flutter** — stable channel with caching.
-4. **`flutter pub get`** — install dependencies.
-5. **Read version** — parse `VERSION_NAME` and `VERSION_CODE` from `pubspec.yaml`; validates
-   that the code is numeric and fails if the version line is malformed.
-6. **Read changelog** — extract the `## VERSION_NAME` section from `CHANGELOG.md`; fails if the
-   section is missing.
-7. **Pre-check Backend** — calls `GET /app/releases/latest`; if the Backend already has a release
-   with a `version_code >=` this build's, the workflow **fails** (prevents duplicates/overwrites).
-8. **Build signed APK** — decodes the keystore from a GitHub Secret and runs
-   `flutter build apk --release`. The Gradle release build type uses **only** the Production
-   signing config and **never** falls back to the Debug keystore.
-9. **Verify APK signature** — uses `apksigner` + `keytool` to compare the certificate SHA-256 of
-   the built APK against the keystore decoded from `ANDROID_KEYSTORE_BASE64`; fails the workflow
-   if they differ (e.g. a Debug-signing fallback must never be shipped).
-10. **Rename APK** — copies to `app-v${version_name}.apk` and fails if the APK was not produced.
-11. **Upload via SCP** — uploads the APK to the production server releases directory.
-12. **Verify on server** — SSH `test -f` to confirm the file exists remotely.
-13. **Login to Backend** — posts `BACKEND_USERNAME`/`BACKEND_PASSWORD` to `POST /auth/login`, reads the
-    Access Token from `data.token`, masks it, and keeps it only for the current job (never stored).
-14. **Publish release** — `POST /app/releases` (Bearer token) with `version_code`, `version_name`,
-    `changelog`, and `file_name`. If the Backend returns `401 Unauthorized`, the pipeline logs in
-    again and retries **once**; any other non-2xx response fails the run. There is no infinite retry.
-15. **Verify latest release** — `GET /app/releases/latest` and asserts the returned release matches
-    what we just published (`version_code`, `version_name`, `file_name`); fails on mismatch.
-16. **Download endpoint check (optional)** — a lightweight `HEAD` against the download endpoint.
-17. **Cleanup** — removes the keystore, `keystore.properties`, changelog, and any temporary files.
-
-Any failed step aborts the workflow so a partial release is never reported as successful.
-
----
-
-## 3. How to create a release
-
-A release is created by updating **two** files and pushing to `main`:
-
-### Step 1 — Bump the version in `pubspec.yaml`
+`pubspec.yaml` is the single source of truth:
 
 ```yaml
-version: 2.1.0+2
+version: 4.0.11+11
 ```
 
-`version_code` (`2`) must be **higher** than the previous release's code. The Backend enforces
-this and the pipeline also pre-checks it.
+- `4.0.11` → `versionName`
+- `11` → `versionCode` (must always increase; never reuse or decrease)
 
-### Step 2 — Add release notes to `CHANGELOG.md`
-
-Add a new `## 2.1.0` section at the top of the list, matching the `version_name` exactly:
+The same version must have a matching section in `CHANGELOG.md`:
 
 ```markdown
-## 2.1.0
+## 4.0.11
 
-* Added new lessons
-* Fixed video playback issue
-* Improved application performance
+* ...
 ```
 
-> The `## 2.1.0` header MUST exactly match `version_name`. If it doesn't, the workflow fails and
-> nothing is published.
+The pipeline extracts the `## <version_name>` section and sends it to the
+backend as the release changelog. A missing section fails the release.
 
-### Step 3 — Commit and push
+## Required repository secrets
 
-```bash
-git add pubspec.yaml CHANGELOG.md
-git commit -m "Release 2.1.0"
-git push origin main
-```
-
-That's it. GitHub Actions runs the pipeline automatically.
-
----
-
-## 4. Triggering the pipeline
-
-- **On push to `main`** — only when `pubspec.yaml` **or** `CHANGELOG.md` changed (path filter).
-- **Manually** — via the GitHub web UI: **Actions → "Release Android APK" → Run workflow**
-  (`workflow_dispatch`).
-
----
-
-## 5. Required GitHub Secrets
-
-Create these under **GitHub → Settings → Secrets and variables → Actions → Secrets**.
-Never commit any of these values.
-
-| Secret name | Purpose |
-|---|---|
-| `SERVER_HOST` | Production server hostname/IP (e.g. `mr-edu.ertiqaa.site`) |
-| `SERVER_USER` | SSH user (e.g. `deploy`) |
-| `SERVER_SSH_KEY` | SSH **private key** (PEM) allowed to SCP/SSH into the server |
-| `BACKEND_USERNAME` | Backend login username (the app publishes releases with this account) |
-| `BACKEND_PASSWORD` | Backend login password — **never** printed, only referenced via env |
-| `ANDROID_KEYSTORE_BASE64` | Your release keystore (`.jks`) encoded as **base64** |
+| Secret | Used for |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Base64 of the production signing keystore |
 | `KEYSTORE_PASSWORD` | Keystore password |
 | `KEY_ALIAS` | Signing key alias |
-| `KEY_PASSWORD` | Key password |
+| `KEY_PASSWORD` | Signing key password |
+| `SERVER_SSH_KEY` | Private SSH key for the release server |
+| `SERVER_HOST` | Release server hostname |
+| `SERVER_USER` | SSH user |
+| `SERVER_KNOWN_HOSTS` | **Required.** Pinned SSH host keys for the server |
+| `BACKEND_USERNAME` | Backend account allowed to publish releases |
+| `BACKEND_PASSWORD` | Backend account password |
 
-Optional **GitHub Variable** (Settings → Variables):
+Optional repository variables:
 
-| Variable name | Purpose | Default |
-|---|---|---|
-| `SERVER_PORT` | Custom SSH port | `22` |
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SERVER_PORT` | `22` | SSH port |
+| `PUBLISH_INTEGRITY_FIELDS` | unset | Set to `true` **only after** the backend accepts and stores `sha256` and `file_size` on `POST /app/releases`. The pipeline then sends both, computed from the exact uploaded APK, and the client enforces them. |
 
-Optional **GitHub Secret** (hardening; recommended for production):
+## Governance (GitHub settings that must be configured)
 
-| Secret name | Purpose |
-|---|---|
-| `SERVER_KNOWN_HOSTS` | Pinned SSH host key(s) so the runner enforces `StrictHostKeyChecking=yes`. Generate with `ssh-keyscan -t rsa,ecdsa,ed25519 mr-edu.ertiqaa.site` and store the output. If not set, the pipeline falls back to the legacy permissive SSH settings so existing deployments keep working. |
+The workflow files enforce what they can; the rest is repository
+configuration that only an admin can set:
 
-> The old `BACKEND_API_TOKEN` secret is **obsolete**. The pipeline now logs in automatically on every
-> run, so the token is temporary, job-scoped, masked in the logs, and never stored as a secret.
+1. **Release source**: the release job runs only when `github.ref` is
+   `refs/heads/main`. A manual dispatch from another branch is skipped.
+2. **Production environment**: the job declares `environment: production`.
+   In *Settings → Environments → production* add **required reviewers** and
+   restrict deployment branches to `main`. The job (and every secret) then
+   waits for an explicit approval. Move the release secrets listed above into
+   this environment so no other workflow can read them.
+3. **Branch protection on `main`**: require a pull request, require the CI
+   checks `Format, analyze and test` and `Debug APK build` to pass, and block
+   force pushes. Without this a direct push to `main` that touches
+   `pubspec.yaml` starts a release.
+4. **Concurrency**: one release per ref at a time; a running release is never
+   cancelled (`cancel-in-progress: false`).
 
----
+## Application identity
 
-## 6. Generating the signing keystore (once)
+The Android `applicationId` is `com.example.teacher`. It looks like a template
+placeholder, but it **is the production identity**: every APK distributed so
+far (verified: `version_code` 10, signed by `CN=kamal taha, O=MR Education`,
+certificate SHA-256 `626da476…30e0`) and the Firebase Android client in
+`android/app/google-services.json` use it. The iOS bundle id
+(`com.ertiqaa.mr`) is independent.
 
-If you don't already have a release keystore, create one locally:
+Changing it creates a *different* Android app: installed users would not
+receive updates (the in-app updater rejects the package id), and Firebase
+would need a new Android client. Only change it with an explicit migration
+plan (new Firebase client, a final release of the old id that tells users to
+install the new app, and data migration for local notes).
+
+> `SERVER_KNOWN_HOSTS` is mandatory. The workflow never disables host-key
+> verification (`StrictHostKeyChecking=no` is not used). Generate it with:
+>
+> ```bash
+> ssh-keyscan -p 22 release.example.com > known_hosts
+> ```
+>
+> Review the fingerprint through an independent trusted channel before storing
+> it.
+
+## Release stages
+
+1. **Checkout** (pinned action).
+2. **Setup Java 17**.
+3. **Setup Flutter 3.47.9**.
+4. **`flutter pub get --enforce-lockfile`** (the committed `pubspec.lock` is
+   used as-is; a drifted lockfile fails the run).
+5. **Quality gate**: `dart format --set-exit-if-changed`, `flutter analyze`,
+   `flutter test`.
+6. **Read and validate version** from `pubspec.yaml` (`X.Y.Z+positive int`).
+7. **Read changelog** section for that version.
+8. **Backend pre-check**: fails if the backend already serves a
+   `version_code >=` this build, or if its response has a release without a
+   numeric `version_code` (only `data: null`/404 count as "no release yet").
+9. **Prepare signing keystore** from secrets (never committed).
+10. **Build signed release APK** with explicit production `--dart-define`s.
+11. **Verify APK identity and version** using `aapt`: `applicationId` matches
+    `android/app/build.gradle.kts`, `versionCode`/`versionName` match
+    `pubspec.yaml`, and `REQUEST_INSTALL_PACKAGES` is present.
+12. **Verify APK signature** with `apksigner` against the production keystore.
+13. **Rename uniquely** to `app-v<version_name>-<version_code>.apk`. The name
+    used to be `app-v<version_name>.apk`; two builds sharing a version name
+    then overwrote the file the live release pointed to (see
+    [`UPDATE_FLOW.md`](UPDATE_FLOW.md#why-there-was-a-problem-parsing-the-package-happened)).
+14. **Compute SHA-256**, write a `.sha256` file, upload both as a workflow
+    artifact (retention: 90 days).
+15. **Atomic server upload**: refuse if the final file already exists, upload
+    to `<file>.part`, verify the remote SHA-256, then `mv -n` into place.
+    Existing release files are never overwritten; each previous release keeps
+    its own file as a rollback artifact.
+16. **Verify remote file** by re-reading its SHA-256 over SSH.
+17. **Login to backend** and **publish release metadata** (retry once on 401).
+    `sha256`/`file_size` are included only when `PUBLISH_INTEGRITY_FIELDS=true`.
+18. **Verify `/app/releases/latest`** returns the exact version/name/file.
+19. **Strict download verification**: download the artifact from `file_url` (or
+    the fallback endpoint), require HTTP 200, verify SHA-256, minimum size and
+    file type. Any mismatch fails the workflow.
+20. **Orphan cleanup**: if the upload succeeded but the backend never accepted
+    the release, the just-uploaded (uniquely named, unreferenced) file is
+    deleted.
+21. **Cleanup** secrets/temporary files (always runs).
+
+## Artifact and failure behaviour
+
+- The signed APK and its checksum are retained as a GitHub Actions artifact for
+  90 days.
+- A release run is never cancelled by a newer run (`cancel-in-progress: false`),
+  preventing half-finished uploads/publishes.
+- Failures before stage 17 leave the backend untouched.
+- A failure in stages 18–19 means the backend metadata or download endpoint is
+  inconsistent with the uploaded file. Do **not** re-run blindly: check which
+  stage failed and follow [`ROLLBACK.md`](ROLLBACK.md).
+
+## Local release build
 
 ```bash
-keytool -genkey -v \
-  -keystore upload-keystore.jks \
-  -alias upload \
-  -keyalg RSA -keysize 2048 -validity 10000
+flutter build apk --release \
+  --dart-define=APP_ENV=production \
+  --dart-define=API_BASE_URL=https://mr-edu.ertiqaa.site/api/v1 \
+  --dart-define=STORAGE_BASE_URL=https://mr-edu.ertiqaa.site/storage
 ```
 
-> **CRITICAL — only ONE keystore may ever be used.** A new APK can be installed over an existing
-> app only when BOTH have the same `applicationId` **and** the exact same signing certificate.
-> Every APK you ever distribute (Firebase App Distribution, GitHub Actions, manual installs, ...)
-> must be signed with this same Production keystore. Creating a second keystore, or shipping an APK
-> signed with the Debug keystore (the old `flutter build apk --release` template fallback), breaks
-> updates with:
->
-> ```
-> App not installed because the package conflicts with an existing package.
-> ```
->
-> Since this fix, `android/app/build.gradle.kts` **forbids** Debug signing for Release builds: if
-> the Production keystore is missing, the Release build fails instead of silently signing with the
-> Debug key. The CI workflow additionally rejects any released APK whose certificate does not match
-> the keystore stored in `ANDROID_KEYSTORE_BASE64`. If you previously distributed an APK signed with
-> a *different* certificate (e.g. the Debug keystore), a **one-time manual uninstall** of that old
-> build is unavoidable — Android will never let a differently-signed APK overwrite it.
+A local release build requires `android/keystore.properties` pointing to the
+production keystore. Release builds never fall back to debug signing; packaging
+fails with a clear error when signing is not configured.
 
-Then encode it as base64 and store it in the `ANDROID_KEYSTORE_BASE64` secret:
+## Troubleshooting
 
-**Windows (PowerShell):**
+| Symptom | Cause | Action |
+| --- | --- | --- |
+| Pre-check fails (`backend already has version_code`) | `version_code` was not increased | Bump `version` in `pubspec.yaml` |
+| Upload fails (`already exists on the server; refusing to overwrite`) | The same build was already uploaded (re-run) | Confirm no release references the file, or bump `version_code` |
+| Release job skipped | Workflow dispatched from a branch other than `main` | Merge to `main` first |
+| Missing changelog section | No `## <version_name>` in `CHANGELOG.md` | Add the section |
+| APK identity mismatch | Stale build output or wrong `applicationId` | Run `flutter clean` and rebuild; check `android/app/build.gradle.kts` |
+| Signature mismatch | Wrong keystore/alias or debug-signed APK | Verify secrets; never change the production key |
+| SSH host verification failure | Missing/stale `SERVER_KNOWN_HOSTS` | Re-generate and update the secret |
+| Download verification mismatch | Uploaded file differs from built artifact, CDN cache, or wrong `file_url` | Inspect server file hash and CDN cache; see rollback doc |
+| Installer shows "problem parsing the package" | Old client build or corrupt/overwritten server artifact | Ensure the APK hash matches; ship the hardened client (4.0.11+) |
 
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\upload-keystore.jks"))
-```
+## Related documents
 
-**macOS / Linux:**
-
-```bash
-base64 -i upload-keystore.jks
-```
-
-Paste the output into the `ANDROID_KEYSTORE_BASE64` secret value (do **not** commit the `.jks`).
-
-> **Important:** `android/upload-keystore.jks`, `android/keystore.properties`, and any `*.jks`
-> files are **git-ignored**. The CI job recreates them from secrets at build time and they are
-> never committed.
-
----
-
-## 7. Server APK location
-
-The APK is uploaded to:
-
-```
-/var/www/educational_platforms/mr-edu.ertiqaa.site/storage/app/public/releases/app-v<VERSION_NAME>.apk
-```
-
-The public download path is:
-
-```
-https://mr-edu.ertiqaa.site/storage/releases/app-v<VERSION_NAME>.apk
-```
-
----
-
-## 8. Backend endpoints used
-
-| Method | Endpoint | Auth | Used by |
-|---|---|---|---|
-| `POST` | `/api/v1/auth/login` | None (credentials in body) | Pipeline (obtain Access Token) |
-| `GET` | `/api/v1/app/releases/latest` | None | Pipeline (pre-check & verification) & Flutter client |
-| `POST` | `/api/v1/app/releases` | Bearer | Pipeline (publish) |
-| `GET` | `/api/v1/app/releases/latest/download` | None | Flutter client |
-
-Base URL: `https://mr-edu.ertiqaa.site/api/v1`
-
----
-
-## 9. Troubleshooting failures
-
-| Symptom | Likely cause |
-|---|---|
-| `No changelog section found for version` | `CHANGELOG.md` is missing a `## <version_name>` header exactly matching `pubspec.yaml` |
-| `version_code ... is not a positive integer` | `pubspec.yaml` version is malformed (e.g. no `+code`) |
-| `Backend already has version_code ... >= this build` | Version was not bumped; increment `version_code` |
-| `Missing one or more signing secrets` | `ANDROID_KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` not set |
-| `Decoded keystore file is empty` | `ANDROID_KEYSTORE_BASE64` is not a valid base64 keystore |
-| `Release APK is NOT signed with the Production keystore` | The built APK's certificate does not match the keystore from `ANDROID_KEYSTORE_BASE64` — e.g. Debug-signing fallback or a mismatched keystore was used. The workflow fails before publishing. |
-| `Release build requires the Production signing keystore` (local build) | Release builds no longer fall back to Debug signing. Create `android/keystore.properties` with `storeFile`, `storePassword`, `keyAlias`, `keyPassword` pointing to your Production keystore. |
-| `App not installed because the package conflicts with an existing package` | The new APK and the installed app have the same `applicationId` but **different signing certificates**. Compare their certs: `keytool -printcert -jarfile <apk>`. Every distributed APK must be signed with the same Production keystore (see §6). |
-| `Release APK was not generated` | Build failed / plugin incompatibility; check build logs |
-| `Missing SSH secrets` | `SERVER_SSH_KEY`, `SERVER_HOST`, `SERVER_USER` not set |
-| `Uploaded APK not found on server` | SCP target path wrong or server user lacks write permission to `storage/app/public/releases` |
-| `Backend login failed`/`did not contain data.token` | `BACKEND_USERNAME`/`BACKEND_PASSWORD` are wrong, or the Backend login contract changed (endpoint/field) |
-| `Backend rejected the release publish` | The Backend returned non-2xx (other than 401). Inspect the returned body — e.g. `version_code` not unique/increasing, or the account lacks permission for `POST /app/releases` |
-| `Release publish failed after retry` | The Backend returned `401` a second time after re-login; the token still did not authenticate. Check the Backend login response and account permissions |
-| `version_name/version_code/file_name mismatch` | Backend didn't register what we sent; inspect the returned body |
-
-Check the Actions log tab of the failed run for `::error::` lines, which point to the exact step.
-
----
-
-## 10. How the Flutter client detects updates
-
-The client-side update feature lives in `lib/features/update/` and runs as a mandatory
-(gated) update on every app startup. The startup flow is:
-
-1. `SplashScreen` (`lib/features/auth/presentation/screens/splash_screen.dart`) starts the
-   existing auto-login check **and** `UpdateCubit.checkForUpdate()` together.
-2. `UpdateCubit` reads the **installed** `version_code` at runtime with `package_info_plus`
-   (never hard-coded), then calls `GET /api/v1/app/releases/latest`.
-3. Comparison rule (authoritative): `latest.version_code > installed.version_code`
-   → **mandatory update**. Equal or lower → normal flow (no downgrade).
-4. If an update is required, `MandatoryUpdateView` is shown. It cannot be dismissed:
-   no X, no Cancel/Skip/Later, back button blocked (`PopScope`), and no navigation
-   away from Splash while required.
-5. "تحديث الآن" downloads the APK via `GET /api/v1/app/releases/latest/download`
-   (`data.file_url` is treated as metadata only and is **not** the download source),
-   shows progress, saves it under the app support directory, verifies the ZIP/APK magic
-   bytes, then opens the Android package installer via `open_filex`.
-6. The dialog blocks with a Retry action if the download fails. If the installer is
-   cancelled, the app still runs on the old version and the next startup detects
-   `installed < latest` again, so the update cannot be permanently bypassed.
-
-Key files:
-- `lib/features/update/data/datasources/release_remote_data_source.dart`
-- `lib/features/update/data/datasources/apk_installer.dart` (open_filex wrapper)
-- `lib/features/update/data/models/release_model.dart`
-- `lib/features/update/domain/repositories/update_repository.dart`
-- `lib/features/update/domain/usecases/get_latest_release.dart`
-- `lib/features/update/domain/usecases/download_latest_apk.dart`
-- `lib/features/update/domain/logic/update_comparator.dart` (pure comparison rule)
-- `lib/features/update/presentation/cubit/update_cubit.dart`
-- `lib/features/update/presentation/widgets/mandatory_update_view.dart`
-
-Android requirements (already configured):
-- `REQUEST_INSTALL_PACKAGES` permission in `android/app/src/main/AndroidManifest.xml`.
-- `open_filex` merges its own `FileProvider` (covers `files-path`/`cache-path`), so no extra
-  provider declaration is required.
-
-Dependencies: `package_info_plus`, `open_filex`, `path_provider` (direct).
-
----
-
-## Security notes
-
-- No secrets are stored in the repository or workflow files.
-- The keystore, passwords, SSH key, and Backend credentials are all referenced via
-  `${{ secrets.* }}` / `${{ vars.* }}`.
-- The Backend Access Token is **generated per run** via `POST /auth/login`, masked
-  (`echo "::add-mask::…"`), kept only for the current job, and never committed or stored as a
-  GitHub Secret. There is no long-lived `BACKEND_API_TOKEN` to rotate.
-- The keystore is decoded inside the CI runner and deleted at the end of the job (runner is
-  ephemeral).
-- The SSH private key is written to a temporary file with `chmod 600` and removed after use;
-  it is never printed.
-- Recommended hardening: set `SERVER_KNOWN_HOSTS` (pinned host keys) so the runner verifies the
-  server's identity instead of `StrictHostKeyChecking=no`.
-- A final cleanup step removes the keystore, `keystore.properties`, changelog, and other temporary
-  artifacts even when a previous step failed (`if: always()`).
+- [`ENVIRONMENT.md`](ENVIRONMENT.md) — `--dart-define` configuration.
+- [`UPDATE_FLOW.md`](UPDATE_FLOW.md) — client update behaviour and backend
+  metadata contract.
+- [`ROLLBACK.md`](ROLLBACK.md) — rollback and recovery procedure.

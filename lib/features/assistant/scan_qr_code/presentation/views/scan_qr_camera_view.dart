@@ -80,9 +80,9 @@ class _ScanQrCameraViewState extends State<ScanQrCameraView> {
             if (_isProcessing)
               Container(
                 color: Colors.black54,
-child: Center(
-      child: CircularProgressIndicator(color: AppColors.primary),
-    ),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
               ),
           ],
         ),

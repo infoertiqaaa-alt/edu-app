@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/theme/app_colors.dart';
+import 'package:mr/features/lessons/domain/logic/youtube_url_parser.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../../data/models/lesson_detail_model.dart';
 import '../../data/models/lesson_note_model.dart';
@@ -79,7 +80,9 @@ class _LessonDetailBodyState extends State<_LessonDetailBody>
         body: BlocBuilder<LessonDetailCubit, LessonDetailState>(
           builder: (context, state) {
             if (state is LessonDetailLoading || state is LessonDetailInitial) {
-              return Center(child: CircularProgressIndicator(color: AppColors.primary));
+              return Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
 
             if (state is LessonDetailError) {
@@ -87,11 +90,11 @@ class _LessonDetailBodyState extends State<_LessonDetailBody>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(state.message, style: GoogleFonts.cairo(fontSize: 15)),
+                    Text(state.message, style: AppFonts.cairo(fontSize: 15)),
                     SizedBox(height: 12.h),
                     ElevatedButton(
                       onPressed: () => context.pop(),
-                      child: Text('رجوع', style: GoogleFonts.cairo()),
+                      child: Text('رجوع', style: AppFonts.cairo()),
                     ),
                   ],
                 ),
@@ -138,7 +141,7 @@ class _CustomAppBar extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () => context.pushReplacement(Routes.root1),
-                  child: Row(
+                child: Row(
                   children: [
                     Icon(
                       Icons.arrow_forward_ios_rounded,
@@ -148,7 +151,7 @@ class _CustomAppBar extends StatelessWidget {
                     SizedBox(width: 4.w),
                     Text(
                       'الدروس',
-                      style: GoogleFonts.cairo(
+                      style: AppFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
@@ -160,7 +163,7 @@ class _CustomAppBar extends StatelessWidget {
               const Spacer(),
               Text(
                 'مشاهدة الدرس',
-                style: GoogleFonts.cairo(
+                style: AppFonts.cairo(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -185,18 +188,19 @@ class VideoPlayerWidget extends StatefulWidget {
 }
 
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  static const String _fallbackVideoId = 'AEHJqatke6E';
-  late final YoutubePlayerController _controller;
+  String? _videoId;
+  YoutubePlayerController? _controller;
   bool _showThumbnail = true;
   bool _isFullScreen = false;
 
   @override
   void initState() {
     super.initState();
-    final videoId =
-        _extractYoutubeVideoId(widget.lesson.videoUrl) ?? _fallbackVideoId;
+    _videoId = YoutubeUrlParser.extractVideoId(widget.lesson.videoUrl);
+    if (_videoId == null) return;
+
     _controller = YoutubePlayerController.fromVideoId(
-      videoId: videoId,
+      videoId: _videoId!,
       autoPlay: false,
       params: const YoutubePlayerParams(
         showControls: false,
@@ -205,13 +209,13 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         loop: true,
       ),
     );
-    _controller.setFullScreenListener(_onFullScreenChanged);
+    _controller!.setFullScreenListener(_onFullScreenChanged);
   }
 
   @override
   void dispose() {
-    _controller.setFullScreenListener((_) {});
-    _controller.close();
+    _controller?.setFullScreenListener((_) {});
+    _controller?.close();
     super.dispose();
   }
 
@@ -232,21 +236,35 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   void _startPlayback() {
     setState(() => _showThumbnail = false);
-    _controller.playVideo();
+    _controller?.playVideo();
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = _controller;
+    final videoId = _videoId;
+
+    // Never substitute a hardcoded demo video for a missing/invalid lesson URL.
+    if (controller == null || videoId == null) {
+      return const _VideoUnavailablePlaceholder();
+    }
+
     return PopScope(
       canPop: !_isFullScreen,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && _isFullScreen) {
-          _controller.exitFullScreen(lock: false);
+          controller.exitFullScreen(lock: false);
         }
       },
       child: YoutubePlayer(
-        controller: _controller,
+        controller: controller,
         builder: (context, player, controller) {
+          if (controller.value.hasError) {
+            return _VideoPlaybackError(
+              onRetry: () => controller.loadVideoById(videoId: videoId),
+            );
+          }
+
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -274,6 +292,67 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 }
 
+class _VideoUnavailablePlaceholder extends StatelessWidget {
+  const _VideoUnavailablePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.videocam_off_rounded, color: Colors.white70, size: 48.w),
+          SizedBox(height: 12.h),
+          Text(
+            'الفيديو غير متاح لهذا الدرس حاليًا.',
+            textAlign: TextAlign.center,
+            style: AppFonts.cairo(color: Colors.white70, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoPlaybackError extends StatelessWidget {
+  final VoidCallback onRetry;
+
+  const _VideoPlaybackError({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline_rounded, color: Colors.white70, size: 44.w),
+          SizedBox(height: 10.h),
+          Text(
+            'تعذر تشغيل الفيديو.',
+            textAlign: TextAlign.center,
+            style: AppFonts.cairo(color: Colors.white70, fontSize: 14),
+          ),
+          SizedBox(height: 12.h),
+          OutlinedButton(
+            onPressed: onRetry,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white54),
+            ),
+            child: Text('إعادة المحاولة', style: AppFonts.cairo()),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ThumbnailPlaceholder extends StatelessWidget {
   const _ThumbnailPlaceholder();
 
@@ -291,30 +370,6 @@ class _ThumbnailPlaceholder extends StatelessWidget {
   }
 }
 
-String? _extractYoutubeVideoId(String url) {
-  if (url.isEmpty) return null;
-  final uri = Uri.tryParse(url);
-  if (uri == null) return null;
-
-  if (uri.host == 'youtu.be') {
-    final segments = uri.pathSegments;
-    if (segments.isNotEmpty) return segments.last;
-  }
-
-  final queryId = uri.queryParameters['v'];
-  if (queryId != null && queryId.isNotEmpty) return queryId;
-
-  final parts = uri.path
-      .split('/')
-      .where((part) => part.isNotEmpty)
-      .toList();
-  if (parts.length >= 2 && (parts.first == 'embed' || parts.first == 'shorts')) {
-    return parts[1];
-  }
-
-  return null;
-}
-
 class LessonHeaderInfo extends StatelessWidget {
   final LessonDetailModel lesson;
   const LessonHeaderInfo({super.key, required this.lesson});
@@ -328,7 +383,7 @@ class LessonHeaderInfo extends StatelessWidget {
         children: [
           Text(
             lesson.title,
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 17,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -338,10 +393,7 @@ class LessonHeaderInfo extends StatelessWidget {
           SizedBox(height: 4.h),
           Text(
             '${lesson.durationMinutes} دقيقة',
-            style: GoogleFonts.cairo(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-            ),
+            style: AppFonts.cairo(fontSize: 13, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -434,7 +486,7 @@ class _NavButton extends StatelessWidget {
             ],
             Text(
               label,
-              style: GoogleFonts.cairo(
+              style: AppFonts.cairo(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -466,11 +518,11 @@ class LessonTabSection extends StatelessWidget {
             child: TabBar(
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textSecondary,
-              labelStyle: GoogleFonts.cairo(
+              labelStyle: AppFonts.cairo(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
-              unselectedLabelStyle: GoogleFonts.cairo(
+              unselectedLabelStyle: AppFonts.cairo(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -511,7 +563,7 @@ class OverviewTabContent extends StatelessWidget {
         children: [
           Text(
             'عن هذا الدرس',
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -520,7 +572,7 @@ class OverviewTabContent extends StatelessWidget {
           SizedBox(height: 8.h),
           Text(
             lesson.aboutLesson,
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 14,
               color: AppColors.textPrimary,
               height: 1.7,
@@ -530,7 +582,7 @@ class OverviewTabContent extends StatelessWidget {
             SizedBox(height: 20.h),
             Text(
               'ما ستتعلمه',
-              style: GoogleFonts.cairo(
+              style: AppFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
@@ -552,7 +604,7 @@ class OverviewTabContent extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item,
-                        style: GoogleFonts.cairo(
+                        style: AppFonts.cairo(
                           fontSize: 14,
                           color: AppColors.textPrimary,
                           height: 1.5,
@@ -592,14 +644,16 @@ class _NotesTabBody extends StatelessWidget {
     return BlocBuilder<LessonNotesCubit, LessonNotesState>(
       builder: (context, state) {
         if (state is LessonNotesLoading || state is LessonNotesInitial) {
-          return Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
         }
 
         if (state is LessonNotesError) {
           return Center(
             child: Text(
               state.message,
-              style: GoogleFonts.cairo(
+              style: AppFonts.cairo(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -616,7 +670,7 @@ class _NotesTabBody extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'لا توجد ملاحظات',
-                        style: GoogleFonts.cairo(
+                        style: AppFonts.cairo(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
@@ -647,12 +701,10 @@ class _NotesTabBody extends StatelessWidget {
                 width: double.infinity,
                 height: 44.h,
                 child: ElevatedButton.icon(
-                  onPressed: () => _showNoteDialog(
-                    context,
-                    lessonId: lesson.id,
-                  ),
+                  onPressed: () =>
+                      _showNoteDialog(context, lessonId: lesson.id),
                   icon: const Icon(Icons.add_rounded, size: 20),
-                  label: Text('إضافة ملاحظة', style: GoogleFonts.cairo()),
+                  label: Text('إضافة ملاحظة', style: AppFonts.cairo()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -674,25 +726,22 @@ class _NotesTabBody extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('حذف الملاحظة', style: GoogleFonts.cairo()),
+        title: Text('حذف الملاحظة', style: AppFonts.cairo()),
         content: Text(
           'هل أنت متأكد من حذف هذه الملاحظة؟',
-          style: GoogleFonts.cairo(),
+          style: AppFonts.cairo(),
         ),
         actions: [
           TextButton(
             onPressed: () => dialogContext.pop(),
-            child: Text('إلغاء', style: GoogleFonts.cairo()),
+            child: Text('إلغاء', style: AppFonts.cairo()),
           ),
           TextButton(
             onPressed: () {
               dialogContext.pop();
               cubit.deleteNote(note);
             },
-            child: Text(
-              'حذف',
-              style: GoogleFonts.cairo(color: Colors.red),
-            ),
+            child: Text('حذف', style: AppFonts.cairo(color: Colors.red)),
           ),
         ],
       ),
@@ -783,7 +832,7 @@ class _NoteCard extends StatelessWidget {
           ),
           Text(
             note.content,
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 14,
               color: AppColors.textPrimary,
               height: 1.7,

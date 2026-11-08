@@ -17,10 +17,7 @@ class Onboard2View extends StatelessWidget {
               child: Column(
                 children: [
                   Gap(50.h),
-                  Image.asset(
-                    'assets/onboarding2.png',
-                    width: double.infinity,
-                  ),
+                  Image.asset('assets/onboarding2.png', width: double.infinity),
                   Gap(50.h),
                 ],
               ),

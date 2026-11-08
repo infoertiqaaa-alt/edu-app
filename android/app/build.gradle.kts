@@ -53,10 +53,13 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // PRODUCTION IDENTITY - DO NOT CHANGE without a migration plan.
+        // Every distributed APK (up to and including version_code 10) and the
+        // Firebase client in google-services.json use "com.example.teacher".
+        // Android treats a different applicationId as a different app: existing
+        // users would stop receiving updates and the in-app updater rejects the
+        // package. See docs/CI_CD_RELEASE.md ("Application identity").
         applicationId = "com.example.teacher"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

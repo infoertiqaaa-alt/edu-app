@@ -13,10 +13,20 @@ class UpdateInitial extends UpdateState {}
 
 class UpdateChecking extends UpdateState {}
 
-/// لا يوجد تحديث مطلوب → المتابعة للتدفق الطبيعي.
+/// No update is required → continue with the normal startup flow.
 class UpdateNotRequired extends UpdateState {}
 
-/// فشل فحص التحديث (شبكة/خادم) → نكمل طبيعي بدون حجب، بحسب سياسة الأخطاء.
+/// A newer optional release exists. It is not shown as a blocking gate.
+class UpdateOptionalAvailable extends UpdateState {
+  final ReleaseModel release;
+
+  const UpdateOptionalAvailable(this.release);
+
+  @override
+  List<Object?> get props => [release];
+}
+
+/// Update check failed (network/server/invalid metadata) → fail open.
 class UpdateCheckFailed extends UpdateState {
   final Failure failure;
 
@@ -26,7 +36,7 @@ class UpdateCheckFailed extends UpdateState {
   List<Object?> get props => [failure];
 }
 
-/// يوجد إصدار أحدث → التحديث إجباري ولا يمكن تجاوزه.
+/// A newer mandatory release exists → the update gate is shown.
 class UpdateRequired extends UpdateState {
   final ReleaseModel release;
 
@@ -57,6 +67,16 @@ class UpdateDownloading extends UpdateState {
   List<Object?> get props => [release, receivedBytes, totalBytes];
 }
 
+/// The file was downloaded and is being inspected before installation.
+class UpdateValidating extends UpdateState {
+  final ReleaseModel release;
+
+  const UpdateValidating(this.release);
+
+  @override
+  List<Object?> get props => [release];
+}
+
 class UpdateDownloadFailed extends UpdateState {
   final ReleaseModel release;
   final String message;
@@ -67,7 +87,28 @@ class UpdateDownloadFailed extends UpdateState {
   List<Object?> get props => [release, message];
 }
 
-/// تم تنزيل الـ APK وبدأناه في فتح المثبّت (مش معناه إن التثبيت اكتمل).
+/// The downloaded file exists but failed integrity/identity validation.
+class UpdateValidationFailed extends UpdateState {
+  final ReleaseModel release;
+  final String message;
+
+  const UpdateValidationFailed(this.release, this.message);
+
+  @override
+  List<Object?> get props => [release, message];
+}
+
+/// Android has not granted "install unknown apps" for this application.
+class UpdateInstallPermissionRequired extends UpdateState {
+  final ReleaseModel release;
+
+  const UpdateInstallPermissionRequired(this.release);
+
+  @override
+  List<Object?> get props => [release];
+}
+
+/// The installer was opened; this does NOT mean the installation completed.
 class UpdateInstallStarted extends UpdateState {
   final ReleaseModel release;
   final String apkPath;
@@ -78,7 +119,6 @@ class UpdateInstallStarted extends UpdateState {
   List<Object?> get props => [release, apkPath];
 }
 
-/// فشل بدء المثبّت (مثلاً: لا يوجد app للتثبيت أو المشغل اتعطل).
 class UpdateInstallFailed extends UpdateState {
   final ReleaseModel release;
   final String message;
@@ -87,4 +127,10 @@ class UpdateInstallFailed extends UpdateState {
 
   @override
   List<Object?> get props => [release, message];
+}
+
+/// The user left the gate through the bounded escape hatch after the update
+/// failed repeatedly. The update is re-checked on the next app start.
+class UpdateDeferred extends UpdateState {
+  const UpdateDeferred();
 }

@@ -14,10 +14,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<LoginResponseModel> login(LoginRequestModel request) async {
-    final response = await dio.post(
-      ApiConstants.login,
-      data: request.toJson(),
-    );
+    final response = await dio.post(ApiConstants.login, data: request.toJson());
     return LoginResponseModel.fromJson(response.data);
   }
 }

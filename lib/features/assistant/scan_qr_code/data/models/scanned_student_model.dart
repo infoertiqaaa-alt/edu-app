@@ -1,9 +1,10 @@
-/// بيانات الطالب اللي بترجع بعد مسح الـ QR
-/// TODO: عدّل أسماء المفاتيح (keys) هنا لو شكل الـ JSON الحقيقي مختلف عن اللي مفترضه
+import 'package:mr/core/utils/json_parsers.dart';
+
+/// Student data returned after scanning a QR code.
 class ScannedStudentModel {
   final int id;
   final String name;
-  final String? studentNumber; // "رقم الطالب #10245" الظاهر في التصميم
+  final String? studentNumber;
   final String grade;
   final String phone;
   final String? profileImage;
@@ -24,24 +25,22 @@ class ScannedStudentModel {
   });
 
   factory ScannedStudentModel.fromJson(Map<String, dynamic> json) {
+    final number =
+        json['student_number'] ?? json['student_code'] ?? json['studentNumber'];
+    final profile = json['profile_image'] ?? json['profileImage'];
+
     return ScannedStudentModel(
-      id: _asInt(json['student_id'] ?? json['id']),
-      name: (json['full_name'] ?? json['name'] ?? '').toString(),
-      // TODO: تأكد المفتاح ده student_number ولا student_code ولا حاجة تانية
-      studentNumber:
-          json['student_number']?.toString() ?? json['student_code']?.toString(),
-      grade: (json['grade'] ?? '').toString(),
-      phone: json['phone']?.toString() ??
-          json['student_phone']?.toString() ??
-          json['guardian_phone']?.toString() ??
-          '',
-      profileImage: json['profile_image']?.toString(),
-      dob: (json['dob'] ?? '').toString(),
-      guardianName: (json['guardian_name'] ?? '').toString(),
-      guardianPhone: (json['guardian_phone'] ?? '').toString(),
+      id: JsonParsers.asIntOr(json['student_id'] ?? json['id'], 0),
+      name: JsonParsers.asString(json['full_name'] ?? json['name']),
+      studentNumber: JsonParsers.asNullableString(number),
+      grade: JsonParsers.asString(json['grade']),
+      phone: JsonParsers.asString(
+        json['phone'] ?? json['student_phone'] ?? json['guardian_phone'],
+      ),
+      profileImage: JsonParsers.asNullableString(profile),
+      dob: JsonParsers.asString(json['dob']),
+      guardianName: JsonParsers.asString(json['guardian_name']),
+      guardianPhone: JsonParsers.asString(json['guardian_phone']),
     );
   }
-
-  static int _asInt(dynamic value) =>
-      value is int ? value : int.tryParse(value?.toString() ?? '') ?? 0;
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/routing/routes.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/widgets/custom_button.dart';
@@ -83,7 +83,7 @@ class _LoginViewState extends State<_LoginView> {
 
                         Text(
                           'تسجيل الدخول',
-                          style: GoogleFonts.tajawal(
+                          style: AppFonts.tajawal(
                             fontSize: 30,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -92,7 +92,7 @@ class _LoginViewState extends State<_LoginView> {
                         const SizedBox(height: 8),
                         Text(
                           'الرجاء إدخال بياناتك للمتابعة إلى حسابك',
-                          style: GoogleFonts.tajawal(
+                          style: AppFonts.tajawal(
                             fontSize: 16,
                             color: Colors.white.withValues(alpha: 0.9),
                           ),

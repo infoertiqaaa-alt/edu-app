@@ -56,13 +56,16 @@ class _SplashBodyState extends State<_SplashBody> {
     return BlocListener<UpdateCubit, UpdateState>(
       listener: (context, state) {
         // اتباع سياسة الأخطاء: الفشل في فحص التحديث لا يمنع التطبيق.
-        if (state is UpdateNotRequired || state is UpdateCheckFailed) {
-          _proceedToNavigation = true;
-          _tryNavigate();
-        }
-        // بعد بدء المثبّت نكمل التدفق الطبيعي؛ التحديث نفسه يُختبر مجددًا
-        // في الإقلاع التالي في حالة ألغى المستخدم التثبيت.
-        if (state is UpdateInstallStarted) {
+        //
+        // UpdateInstallStarted مقصود إنه مش في القائمة: فتح المثبّت لا يعني
+        // إن التثبيت اكتمل. لو المستخدم ألغى التثبيت لازم يفضل على شاشة
+        // التحديث الإجباري (بزر "إعادة فتح المثبّت")، وإلا كان إلغاء المثبّت
+        // بيتخطّى التحديث الإجباري. لو التثبيت نجح، Android بيعيد تشغيل
+        // التطبيق بالنسخة الجديدة تلقائيًا.
+        if (state is UpdateNotRequired ||
+            state is UpdateOptionalAvailable ||
+            state is UpdateCheckFailed ||
+            state is UpdateDeferred) {
           _proceedToNavigation = true;
           _tryNavigate();
         }
@@ -105,7 +108,10 @@ class _SplashBodyState extends State<_SplashBody> {
   bool _isBlockingUpdateState(UpdateState state) {
     return state is UpdateRequired ||
         state is UpdateDownloading ||
+        state is UpdateValidating ||
         state is UpdateDownloadFailed ||
+        state is UpdateValidationFailed ||
+        state is UpdateInstallPermissionRequired ||
         state is UpdateInstallStarted ||
         state is UpdateInstallFailed;
   }

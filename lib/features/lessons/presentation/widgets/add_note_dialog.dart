@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 
 /// Stateless add/edit note dialog used in the lesson detail screen.
 ///
@@ -22,9 +22,7 @@ class AddNoteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.0)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: Container(
@@ -59,7 +57,10 @@ class AddNoteDialog extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF9E9E9E)),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xFF9E9E9E),
+                  ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -114,7 +115,7 @@ class AddNoteDialog extends StatelessWidget {
                     ),
                     child: Text(
                       'إلغاء',
-                      style: GoogleFonts.cairo(
+                      style: AppFonts.cairo(
                         color: const Color(0xFF6C757D),
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
@@ -143,7 +144,7 @@ class AddNoteDialog extends StatelessWidget {
                     ),
                     child: Text(
                       'حفظ',
-                      style: GoogleFonts.cairo(
+                      style: AppFonts.cairo(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,

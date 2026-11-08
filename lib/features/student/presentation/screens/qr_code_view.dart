@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
@@ -48,31 +48,34 @@ class _QrCodeBody extends StatelessWidget {
                   child: SafeArea(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [  
+                      children: [
                         Gap(10.h),
                         Expanded(
                           child: Text(
                             'رمز QR الخاص بي',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.cairo(
+                            style: AppFonts.cairo(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
                         ),
-                       ],
+                      ],
                     ),
                   ),
                 ),
-                
 
                 //body
                 Expanded(
                   child: BlocBuilder<ProfileCubit, ProfileState>(
                     builder: (context, state) {
                       if (state is ProfileLoading || state is ProfileInitial) {
-                        return Center(child: CircularProgressIndicator(color: AppColors.primary));
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
+                        );
                       }
 
                       if (state is ProfileError) {
@@ -85,13 +88,16 @@ class _QrCodeBody extends StatelessWidget {
                                 Text(
                                   state.message,
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.cairo(fontSize: 15),
+                                  style: AppFonts.cairo(fontSize: 15),
                                 ),
                                 Gap12(),
                                 ElevatedButton(
                                   onPressed: () =>
                                       context.read<ProfileCubit>().getProfile(),
-                                  child: Text('حاول تاني', style: GoogleFonts.cairo()),
+                                  child: Text(
+                                    'حاول تاني',
+                                    style: AppFonts.cairo(),
+                                  ),
                                 ),
                               ],
                             ),
@@ -108,7 +114,7 @@ class _QrCodeBody extends StatelessWidget {
                             // ---- الاسم والصف ----
                             Text(
                               profile.name,
-                              style: GoogleFonts.cairo(
+                              style: AppFonts.cairo(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.black87,
@@ -117,7 +123,7 @@ class _QrCodeBody extends StatelessWidget {
                             SizedBox(height: 4.h),
                             Text(
                               profile.grade,
-                              style: GoogleFonts.cairo(
+                              style: AppFonts.cairo(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
@@ -130,7 +136,9 @@ class _QrCodeBody extends StatelessWidget {
                             Container(
                               margin: EdgeInsets.symmetric(horizontal: 24.w),
                               padding: EdgeInsets.symmetric(
-                                  vertical: 24.h, horizontal: 16.w),
+                                vertical: 24.h,
+                                horizontal: 16.w,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20.r),
@@ -146,14 +154,16 @@ class _QrCodeBody extends StatelessWidget {
                                 children: [
                                   Container(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 14.w, vertical: 6.h),
+                                      horizontal: 14.w,
+                                      vertical: 6.h,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF1EEFC),
                                       borderRadius: BorderRadius.circular(20.r),
                                     ),
                                     child: Text(
                                       'رمز QR الطالب',
-                                      style: GoogleFonts.cairo(
+                                      style: AppFonts.cairo(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w700,
                                         color: const Color(0xFF8B5CF6),
@@ -175,7 +185,7 @@ class _QrCodeBody extends StatelessWidget {
                               child: Text(
                                 'اعرض هذا الرمز في المركز لتسجيل حضورك.',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.cairo(
+                                style: AppFonts.cairo(
                                   fontSize: 12,
                                   color: Colors.black45,
                                 ),
@@ -204,7 +214,7 @@ class _QrCodeBody extends StatelessWidget {
                             //       ),
                             //       label: Text(
                             //         'التقارير',
-                            //         style: GoogleFonts.cairo(
+                            //         style: AppFonts.cairo(
                             //           fontSize: 16,
                             //           fontWeight: FontWeight.w700,
                             //           color: Colors.white,
@@ -234,7 +244,7 @@ class _QrCodeBody extends StatelessWidget {
                   right: 0,
                   child: Center(
                     child: GestureDetector(
-                      onTap: (){
+                      onTap: () {
                         context.push(Routes.profileView);
                       },
                       child: StudentAvatar(

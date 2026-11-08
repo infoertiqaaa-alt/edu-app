@@ -18,8 +18,23 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<String?> getSavedUserRole() async {
     final token = await tokenStorage.getToken();
-    if (token == null || token.trim().isEmpty) return null;
-    return tokenStorage.getRole();
+    if (token == null || token.trim().isEmpty) {
+      // A role without a token is an inconsistent session.
+      if (await tokenStorage.getRole() != null ||
+          await tokenStorage.getUserId() != null) {
+        await tokenStorage.clearSession();
+      }
+      return null;
+    }
+
+    final role = (await tokenStorage.getRole())?.trim();
+    if (role == null || role.isEmpty) {
+      // Token exists but the session is incomplete/corrupt.
+      await tokenStorage.clearSession();
+      return null;
+    }
+
+    return role;
   }
 
   @override
@@ -34,23 +49,29 @@ class AuthRepositoryImpl implements AuthRepository {
 
       if (!response.success) {
         return Left(
-          Failure(
+          AuthenticationFailure(
             response.message.isNotEmpty
                 ? response.message
-                : 'Login failed. Please try again.',
+                : 'تعذر تسجيل الدخول، حاول مرة أخرى.',
           ),
         );
       }
 
-      if (response.token.isEmpty) {
-        return const Left(Failure('Login response does not contain a token.'));
+      if (response.token.trim().isEmpty) {
+        return const Left(
+          ParsingFailure('استجابة تسجيل الدخول لا تحتوي على token.'),
+        );
       }
 
-      await tokenStorage.saveToken(response.token);
-      await tokenStorage.saveRole(response.user.role);
+      final userId = response.user.id.trim();
+      await tokenStorage.saveSession(
+        token: response.token,
+        role: response.user.role,
+        userId: userId.isEmpty ? null : userId,
+      );
       return Right(response.user);
-    } catch (e) {
-      return Left(NetworkExceptions.handle(e));
+    } catch (error) {
+      return Left(NetworkExceptions.handle(error, isLoginRequest: true));
     }
   }
 }

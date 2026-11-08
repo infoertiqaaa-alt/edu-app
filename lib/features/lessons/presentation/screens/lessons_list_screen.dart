@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
@@ -80,7 +80,11 @@ class _LessonsListBodyState extends State<_LessonsListBody> {
               child: BlocBuilder<LessonsCubit, LessonsState>(
                 builder: (context, state) {
                   if (state is LessonsLoading || state is LessonsInitial) {
-                    return Center(child: CircularProgressIndicator(color: AppColors.primary));
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    );
                   }
 
                   if (state is LessonsError) {
@@ -93,14 +97,13 @@ class _LessonsListBodyState extends State<_LessonsListBody> {
                             Text(
                               state.message,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.cairo(fontSize: 15),
+                              style: AppFonts.cairo(fontSize: 15),
                             ),
                             SizedBox(height: 12.h),
                             ElevatedButton(
                               onPressed: () =>
                                   context.read<LessonsCubit>().getLessons(),
-                              child:
-                                  Text('حاول تاني', style: GoogleFonts.cairo()),
+                              child: Text('حاول تاني', style: AppFonts.cairo()),
                             ),
                           ],
                         ),
@@ -117,7 +120,7 @@ class _LessonsListBodyState extends State<_LessonsListBody> {
                         _query.trim().isEmpty
                             ? 'لا يوجد دروس حالياً'
                             : 'لا توجد نتائج للبحث',
-                        style: GoogleFonts.cairo(
+                        style: AppFonts.cairo(
                           fontSize: 16,
                           color: AppColors.textSecondary,
                         ),
@@ -126,8 +129,7 @@ class _LessonsListBodyState extends State<_LessonsListBody> {
                   }
 
                   return RefreshIndicator(
-                    onRefresh: () =>
-                        context.read<LessonsCubit>().getLessons(),
+                    onRefresh: () => context.read<LessonsCubit>().getLessons(),
                     child: _LessonsContent(lessons: filtered),
                   );
                 },
@@ -175,7 +177,7 @@ class _HeaderWidget extends StatelessWidget {
                   const Spacer(),
                   Text(
                     'الدروس',
-                    style: GoogleFonts.cairo(
+                    style: AppFonts.cairo(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
@@ -208,14 +210,11 @@ class _HeaderWidget extends StatelessWidget {
                     onChanged: onSearchChanged,
                     autofocus: true,
                     textInputAction: TextInputAction.search,
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
+                    style: AppFonts.cairo(fontSize: 14, color: Colors.white),
                     cursorColor: Colors.white,
                     decoration: InputDecoration(
                       hintText: 'ابحث عن درس...',
-                      hintStyle: GoogleFonts.cairo(
+                      hintStyle: AppFonts.cairo(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.7),
                       ),
@@ -243,8 +242,10 @@ class _HeaderWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12.r),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 14.w,
+                        vertical: 10.h,
+                      ),
                     ),
                   ),
                 )
@@ -252,7 +253,7 @@ class _HeaderWidget extends StatelessWidget {
                 SizedBox(height: 4.h),
                 Text(
                   'تابع تقدمك في المنهج الأكاديمي',
-                  style: GoogleFonts.cairo(
+                  style: AppFonts.cairo(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     color: Colors.white.withValues(alpha: 0.8),
@@ -283,7 +284,7 @@ class _LessonsContent extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Text(
               'الدروس',
-              style: GoogleFonts.cairo(
+              style: AppFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
@@ -301,10 +302,7 @@ class _LessonsContent extends StatelessWidget {
                 return LessonCardWidget(
                   lesson: lesson,
                   onTap: () {
-                    context.push(
-                      Routes.lessonDetail,
-                      arguments: lesson.id,
-                    );
+                    context.push(Routes.lessonDetail, arguments: lesson.id);
                   },
                 );
               },
@@ -362,7 +360,7 @@ class LessonCardWidget extends StatelessWidget {
                       ),
                       child: Text(
                         lesson.chapterName,
-                        style: GoogleFonts.cairo(
+                        style: AppFonts.cairo(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
@@ -374,7 +372,7 @@ class LessonCardWidget extends StatelessWidget {
                       lesson.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.cairo(
+                      style: AppFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
@@ -384,7 +382,7 @@ class LessonCardWidget extends StatelessWidget {
                     SizedBox(height: 6.h),
                     Text(
                       'مدة الفيديو: ${lesson.durationMinutes} دقيقة',
-                      style: GoogleFonts.cairo(
+                      style: AppFonts.cairo(
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),

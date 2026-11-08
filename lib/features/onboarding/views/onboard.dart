@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
@@ -75,18 +75,20 @@ class _RootState extends State<Onboard> {
                   ),
                 ),
                 Spacer(),
-                 Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w),
-                    child: Text(
-                     currentScreen == 1 ? 'اكتشف رحلة تعليمية جديدة وممتعة. نحن هنا لمساعدتك على التفوق وتحقيق أهدافك.':'استكشف عوالم جديدة من المعرفة معنا. نسهل عليك التعلم في أي وقت وأي كان. انضم إلينا اليوم!',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.cairo(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Text(
+                    currentScreen == 1
+                        ? 'اكتشف رحلة تعليمية جديدة وممتعة. نحن هنا لمساعدتك على التفوق وتحقيق أهدافك.'
+                        : 'استكشف عوالم جديدة من المعرفة معنا. نسهل عليك التعلم في أي وقت وأي كان. انضم إلينا اليوم!',
+                    textAlign: TextAlign.center,
+                    style: AppFonts.cairo(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Gap(26.h),
+                ),
+                Gap(26.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
@@ -125,10 +127,7 @@ class _RootState extends State<Onboard> {
 
                       await sl<OnboardingStorage>().markCompleted();
                       if (!context.mounted) return;
-                      context.pushUntil(
-                        Routes.loginScreen,
-                        (route) => false,
-                      );
+                      context.pushUntil(Routes.loginScreen, (route) => false);
                     },
                   ),
                 ),

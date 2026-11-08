@@ -1,3 +1,5 @@
+import 'package:mr/core/utils/json_parsers.dart';
+
 class LessonModel {
   final int id;
   final String chapterName;
@@ -15,11 +17,11 @@ class LessonModel {
 
   factory LessonModel.fromJson(Map<String, dynamic> json) {
     return LessonModel(
-      id: json['id'] ?? 0,
-      chapterName: json['chapter_name'] ?? '',
-      title: json['title'] ?? '',
-      durationMinutes: json['duration_minutes'] ?? 0,
-      thumbnailUrl: json['thumbnail_url'] ?? '',
+      id: JsonParsers.asIntOr(json['id'], 0),
+      chapterName: JsonParsers.asString(json['chapter_name']),
+      title: JsonParsers.asString(json['title']),
+      durationMinutes: JsonParsers.asIntOr(json['duration_minutes'], 0),
+      thumbnailUrl: JsonParsers.asString(json['thumbnail_url']),
     );
   }
 }

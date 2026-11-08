@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/theme/app_colors.dart';
 
 class InfoRowData {
@@ -15,11 +15,7 @@ class InfoSectionCard extends StatelessWidget {
   final String title;
   final List<InfoRowData> rows;
 
-  const InfoSectionCard({
-    super.key,
-    required this.title,
-    required this.rows,
-  });
+  const InfoSectionCard({super.key, required this.title, required this.rows});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +38,7 @@ class InfoSectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.cairo(
+            style: AppFonts.cairo(
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
@@ -70,14 +66,11 @@ class _InfoRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.cairo(fontSize: 12, color: Colors.black45),
-        ),
+        Text(label, style: AppFonts.cairo(fontSize: 12, color: Colors.black45)),
         SizedBox(height: 4.h),
         Text(
           value.isNotEmpty ? value : '—',
-          style: GoogleFonts.cairo(
+          style: AppFonts.cairo(
             fontSize: 15,
             fontWeight: FontWeight.w700,
             color: Colors.black87,

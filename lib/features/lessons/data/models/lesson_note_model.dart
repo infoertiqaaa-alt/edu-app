@@ -28,10 +28,8 @@ class LessonNote {
       id: map['id'] as int,
       lessonId: map['lesson_id'] as int,
       content: map['content'] as String,
-      createdAt:
-          DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
-      updatedAt:
-          DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
     );
   }
 }

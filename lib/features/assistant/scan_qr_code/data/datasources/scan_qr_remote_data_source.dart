@@ -16,28 +16,14 @@ class ScanQrRemoteDataSourceImpl implements ScanQrRemoteDataSource {
 
   @override
   Future<ScannedStudentModel> scanStudent(String qrCodeString) async {
-    final response = await dio.get(
-      ApiConstants.scanStudentByQr(qrCodeString),
-    );
-    final apiResponse = ApiResponse<ScannedStudentModel>.fromJson(
+    final response = await dio.get(ApiConstants.scanStudentByQr(qrCodeString));
+    // Previously a generic Exception surfaced to the user as
+    // "Exception: Unable to find..." (English, with the class-name prefix).
+    return ApiResponse.requireData(
       response.data,
       (json) => ScannedStudentModel.fromJson(json),
+      failureMessage: 'تعذر العثور على الطالب صاحب هذا الكود.',
     );
-
-    if (!apiResponse.success) {
-      throw Exception(
-        apiResponse.message.isNotEmpty
-            ? apiResponse.message
-            : 'Unable to find the scanned student.',
-      );
-    }
-
-    final student = apiResponse.data;
-    if (student == null) {
-      throw const FormatException('Scan response does not contain student data.');
-    }
-
-    return student;
   }
 
   @override
@@ -53,9 +39,7 @@ class ScanQrRemoteDataSourceImpl implements ScanQrRemoteDataSource {
 
     final data = Map<String, dynamic>.from(response.data as Map);
     if (data['success'] != true) {
-      throw ApiException(
-        data['message']?.toString() ?? 'تعذر تسجيل الحضور.',
-      );
+      throw ApiException(data['message']?.toString() ?? 'تعذر تسجيل الحضور.');
     }
   }
 }

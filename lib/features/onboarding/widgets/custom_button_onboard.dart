@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/theme/app_colors.dart';
 
 class CustomButtonOnboard extends StatelessWidget {
@@ -28,7 +28,7 @@ class CustomButtonOnboard extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: GoogleFonts.cairo(
+          style: AppFonts.cairo(
             fontWeight: FontWeight.w700,
             fontSize: 20,
             color: Colors.white,

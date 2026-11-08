@@ -1,3 +1,5 @@
+import 'package:mr/core/utils/json_parsers.dart';
+
 class StudentReportModel {
   final int id;
   final String name;
@@ -17,12 +19,12 @@ class StudentReportModel {
 
   factory StudentReportModel.fromJson(Map<String, dynamic> json) {
     return StudentReportModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? '',
-      studentCode: json['student_code'] ?? '',
-      grade: json['grade'] ?? '',
-      groupName: json['group_name'] ?? '',
-      profileImage: json['profile_image'],
+      id: JsonParsers.asIntOr(json['id'], 0),
+      name: JsonParsers.asString(json['name']),
+      studentCode: JsonParsers.asString(json['student_code']),
+      grade: JsonParsers.asString(json['grade']),
+      groupName: JsonParsers.asString(json['group_name']),
+      profileImage: JsonParsers.asNullableString(json['profile_image']),
     );
   }
 }

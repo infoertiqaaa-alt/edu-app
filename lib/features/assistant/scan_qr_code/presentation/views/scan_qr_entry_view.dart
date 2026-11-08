@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:mr/core/theme/app_fonts.dart';
 import 'package:mr/core/di/service_locator.dart';
 import 'package:mr/core/extensions/context_extensions.dart';
 import 'package:mr/core/routing/routes.dart';
@@ -52,15 +52,9 @@ class _ScanQrEntryBody extends StatelessWidget {
                       onPressed: () async {
                         await sl<TokenStorage>().clearToken();
                         if (!context.mounted) return;
-                        context.pushUntil(
-                          Routes.loginScreen,
-                          (route) => false,
-                        );
+                        context.pushUntil(Routes.loginScreen, (route) => false);
                       },
-                      icon: const Icon(
-                        Icons.logout,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.logout, color: Colors.white),
                     ),
                     SizedBox(width: 16.w),
                   ],
@@ -80,7 +74,10 @@ class _ScanQrEntryBody extends StatelessWidget {
                 // ---- الكارت الأبيض الرئيسي ----
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 24.w),
-                  padding: EdgeInsets.symmetric(vertical: 32.h, horizontal: 20.w),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 32.h,
+                    horizontal: 20.w,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24.r),
@@ -104,7 +101,7 @@ class _ScanQrEntryBody extends StatelessWidget {
                       Text(
                         'اضغط على زر المسح لتشغيل الكاميرا والتقاط الرمز\nالخاص بك فوراً',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.cairo(
+                        style: AppFonts.cairo(
                           fontSize: 14,
                           color: Colors.black54,
                         ),
@@ -134,7 +131,7 @@ class _ScanQrEntryBody extends StatelessWidget {
                           ),
                           child: Text(
                             'مسح (Scan)',
-                            style: GoogleFonts.cairo(
+                            style: AppFonts.cairo(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,

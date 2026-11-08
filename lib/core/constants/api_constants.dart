@@ -1,12 +1,15 @@
+import '../config/app_config.dart';
+
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'https://mr-edu.ertiqaa.site/api/v1';
+  /// Single source of truth: build-time configuration (`app_config.dart`).
+  static String get baseUrl => AppConfig.apiBaseUrl;
 
-  static const String storageBaseUrl = 'https://mr-edu.ertiqaa.site/storage';
+  static String get storageBaseUrl => AppConfig.storageBaseUrl;
 
-  /// بتحوّل المسار النسبي اللي بترجعه الـ API (زي `student-profiles/x.jpg`)
-  /// لـ URL كامل جاهز للعرض، وبتسيب الـ URLs الكاملة زي ما هي.
+  /// Converts the relative path returned by the API (e.g. `student-profiles/x.jpg`)
+  /// into a full display URL, leaving absolute URLs untouched.
   static String? resolveImageUrl(String? path) {
     final trimmed = path?.trim();
     if (trimmed == null || trimmed.isEmpty) return null;
@@ -31,4 +34,9 @@ class ApiConstants {
   // App release / update endpoints (client reads these, never publishes)
   static const String latestRelease = '/app/releases/latest';
   static const String latestReleaseDownload = '/app/releases/latest/download';
+
+  /// Absolute fallback download URL used only when the release metadata does
+  /// not contain a usable `file_url`.
+  static String get latestReleaseDownloadUrl =>
+      '$baseUrl$latestReleaseDownload';
 }

@@ -9,13 +9,19 @@ on:
       - 'CHANGELOG.md'
   workflow_dispatch:
 
+# Least privilege: this workflow only needs to read the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  # A release must never be cancelled halfway through an upload/publish.
+  cancel-in-progress: false
 
 env:
   # Backend
   BACKEND_BASE_URL: 'https://mr-edu.ertiqaa.site/api/v1'
+  FLUTTER_VERSION: '3.47.9'
 
   # Server deploy location (no credentials here)
   SERVER_REMOTE_DIR: '/var/www/educational_platforms/mr-edu.ertiqaa.site/storage/app/public/releases'
@@ -23,6 +29,14 @@ env:
 jobs:
   release:
     name: Build, upload and publish release
+    # Governance: production releases are built only from main, whether the
+    # run was triggered by a push or manually. A manual dispatch from any other
+    # branch is skipped instead of publishing unreviewed code.
+    if: github.ref == 'refs/heads/main'
+    # Configure required reviewers for this environment in
+    # Settings -> Environments -> production to require an approval before any
+    # secret is exposed to the job (see docs/CI_CD_RELEASE.md).
+    environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -37,32 +51,45 @@ jobs:
       # Stage 1 - Checkout
       # ------------------------------------------------------------------
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       # ------------------------------------------------------------------
       # Stage 2 - Setup Java
       # ------------------------------------------------------------------
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
 
       # ------------------------------------------------------------------
-      # Stage 3 - Setup Flutter
+      # Stage 3 - Setup Flutter (pinned)
       # ------------------------------------------------------------------
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       # ------------------------------------------------------------------
       # Stage 4 - Dependencies
       # ------------------------------------------------------------------
-      - name: Flutter pub get
-        run: flutter pub get
+      - name: Flutter pub get (lockfile enforced)
+        run: flutter pub get --enforce-lockfile
+
+      # ------------------------------------------------------------------
+      # Stage 4b - Quality gate (the release must pass the same checks as PRs)
+      # ------------------------------------------------------------------
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Unit and widget tests
+        run: flutter test
 
       # ------------------------------------------------------------------
       # Stage 5 - Read version from pubspec.yaml
@@ -180,10 +207,17 @@ jobs:
 
           case "$http_code" in
             200)
-              latest_code="$(echo "$body" | jq -r '[(.data // .) as $o | ($o.version_code // 0)] | first')"
+              # `data: null` (no release yet) is the only case treated as 0.
+              # A release object WITHOUT a numeric version_code is an error:
+              # previously it silently became 0 (or a bash comparison error
+              # that `set -u` without `-e` ignored) and the check "passed".
+              latest_code="$(echo "$body" | jq -r '
+                if (has("data") and .data == null) then "0"
+                else ((.data // .).version_code // "missing") | tostring
+                end' 2>/dev/null || echo "invalid")"
 
-              if [[ -z "$latest_code" ]]; then
-                echo "::error::Backend latest response did not include a numeric version_code."
+              if ! [[ "$latest_code" =~ ^[0-9]+$ ]]; then
+                echo "::error::Backend latest response did not include a numeric version_code (got '$latest_code')."
                 echo "$body" | head -c 500 >&2
                 exit 1
               fi
@@ -268,9 +302,78 @@ jobs:
         run: |
           set -euo pipefail
 
-          flutter build apk --release
+          flutter build apk --release \
+            --dart-define=APP_ENV=production \
+            --dart-define=API_BASE_URL="$BACKEND_BASE_URL" \
+            --dart-define=STORAGE_BASE_URL='https://mr-edu.ertiqaa.site/storage'
 
           echo "Release APK built successfully."
+
+      # ------------------------------------------------------------------
+      # Stage 9a - Verify APK identity and version match the repository
+      #
+      # This catches stale/wrong APKs (wrong applicationId, reused/downgraded
+      # versionCode) before anything is uploaded.
+      # ------------------------------------------------------------------
+      - name: Verify APK identity and version
+        shell: bash
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: |
+          set -euo pipefail
+
+          apk="$GITHUB_WORKSPACE/build/app/outputs/flutter-apk/app-release.apk"
+          test -f "$apk" || { echo "::error::Release APK not found."; exit 1; }
+
+          expected_id="$(
+            sed -nE 's/.*applicationId[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' \
+              android/app/build.gradle.kts | head -n1
+          )"
+
+          if [[ -z "$expected_id" ]]; then
+            echo "::error::Could not read applicationId from android/app/build.gradle.kts."
+            exit 1
+          fi
+
+          aapt=""
+          for sdk in "${ANDROID_SDK_ROOT:-}" "${ANDROID_HOME:-}"; do
+            if [[ -n "$sdk" && -d "$sdk/build-tools" ]]; then
+              aapt="$(find "$sdk/build-tools" -name aapt -type f 2>/dev/null | sort -V | tail -n1)"
+              [[ -n "$aapt" ]] && break
+            fi
+          done
+
+          test -n "$aapt" || { echo "::error::aapt not found in Android SDK build-tools."; exit 1; }
+
+          badging="$("$aapt" dump badging "$apk")"
+          actual_id="$(sed -nE "s/^package: name='([^']+)'.*/\1/p" <<< "$badging")"
+          actual_code="$(sed -nE "s/^package:.*versionCode='([0-9]+)'.*/\1/p" <<< "$badging")"
+          actual_name="$(sed -nE "s/^package:.*versionName='([^']*)'.*/\1/p" <<< "$badging")"
+
+          echo "APK identity: id=$actual_id versionCode=$actual_code versionName=$actual_name"
+
+          if [[ "$actual_id" != "$expected_id" ]]; then
+            echo "::error::applicationId mismatch: gradle=$expected_id apk=$actual_id"
+            exit 1
+          fi
+          if [[ "$actual_code" != "$VERSION_CODE" ]]; then
+            echo "::error::versionCode mismatch: pubspec=$VERSION_CODE apk=$actual_code"
+            exit 1
+          fi
+          if [[ "$actual_name" != "$VERSION_NAME" ]]; then
+            echo "::error::versionName mismatch: pubspec=$VERSION_NAME apk=$actual_name"
+            exit 1
+          fi
+
+          # The updater depends on this permission to open the package installer.
+          if ! grep -q 'android.permission.REQUEST_INSTALL_PACKAGES' \
+            <<< "$badging"; then
+            echo "::error::APK is missing REQUEST_INSTALL_PACKAGES permission."
+            exit 1
+          fi
+
+          echo "Verified APK identity and version."
 
       # ------------------------------------------------------------------
       # Stage 9b - Verify the release APK is signed with the Production keystore
@@ -345,6 +448,7 @@ jobs:
         shell: bash
         env:
           VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
         run: |
           set -euo pipefail
 
@@ -357,7 +461,13 @@ jobs:
             exit 1
           fi
 
-          apk_name="app-v${VERSION_NAME}.apk"
+          # The file name MUST be unique per build. It used to be
+          # app-v<version_name>.apk, so two builds sharing a version_name
+          # (e.g. after reverting pubspec.yaml) overwrote the file that the
+          # currently published release still pointed to: devices then
+          # downloaded an APK whose versionCode/size no longer matched the
+          # metadata. version_code is unique and strictly increasing.
+          apk_name="app-v${VERSION_NAME}-${VERSION_CODE}.apk"
 
           cp "$apk" "$GITHUB_WORKSPACE/$apk_name"
 
@@ -373,9 +483,43 @@ jobs:
           ls -lh "$GITHUB_WORKSPACE/$apk_name"
 
       # ------------------------------------------------------------------
-      # Stage 11 - Upload APK to server
+      # Stage 10b - Compute SHA-256 and keep the artifact
+      # ------------------------------------------------------------------
+      - name: Compute APK SHA-256
+        id: checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sha="$(sha256sum "$APK_FILE" | awk '{print $1}')"
+          if [[ ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::Could not compute a valid SHA-256 for $APK_FILE."
+            exit 1
+          fi
+
+          printf '%s  %s\n' "$sha" "$APK_NAME" > "$APK_FILE.sha256"
+          echo "APK_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+
+          echo "APK SHA-256: $sha"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-apk-${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.version_code }}
+          path: |
+            ${{ env.APK_FILE }}
+            ${{ env.APK_FILE }}.sha256
+          if-no-files-found: error
+          # Long enough to diagnose a bad release or re-upload the exact
+          # verified artifact after the fact.
+          retention-days: 90
+
+      # ------------------------------------------------------------------
+      # Stage 11 - Upload APK to server (strict host key + atomic move)
       # ------------------------------------------------------------------
       - name: Upload APK to server
+        id: upload
         shell: bash
         env:
           SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
@@ -384,6 +528,7 @@ jobs:
           PORT: ${{ vars.SERVER_PORT }}
           SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
           APK_NAME: ${{ steps.apk.outputs.apk_name }}
+          APK_SHA256: ${{ steps.checksum.outputs.sha256 }}
         run: |
           set -euo pipefail
 
@@ -392,43 +537,77 @@ jobs:
             exit 1
           fi
 
-          ssh_port="${PORT:-22}"
+          if [[ -z "${SERVER_KNOWN_HOSTS:-}" ]]; then
+            echo "::error::SERVER_KNOWN_HOSTS secret is required."
+            echo "::error::Host-key verification is never disabled for releases."
+            exit 1
+          fi
 
+          ssh_port="${PORT:-22}"
           key_file="$(mktemp)"
+          hosts_file="$(mktemp)"
+          trap 'rm -f "$key_file" "$hosts_file"' EXIT
 
           printf '%s\n' "$SSH_KEY" > "$key_file"
           chmod 600 "$key_file"
+          printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
+          chmod 600 "$hosts_file"
 
-          hosts_file=""
+          ssh_extra=(
+            -o StrictHostKeyChecking=yes
+            -o "UserKnownHostsFile=$hosts_file"
+            -o ConnectTimeout=20
+          )
 
-          if [[ -n "${SERVER_KNOWN_HOSTS:-}" ]]; then
-            hosts_file="$(mktemp)"
+          remote_path="${SERVER_REMOTE_DIR}/${APK_NAME}"
+          remote_tmp="${remote_path}.part"
 
-            printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
-            chmod 600 "$hosts_file"
+          echo "Uploading $APK_NAME to $USER@$HOST:$SERVER_REMOTE_DIR/ (atomic)..."
 
-            ssh_extra=(-o "UserKnownHostsFile=$hosts_file")
-          else
-            ssh_extra=(
-              -o StrictHostKeyChecking=no
-              -o UserKnownHostsFile=/dev/null
-            )
+          # Never overwrite an existing release file: it may be the artifact
+          # that the currently published release (or a rollback target) points
+          # to. With version_code in the name this only happens when the same
+          # build is re-run, which must be resolved manually.
+          if ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
+              "${USER}@${HOST}" "test -e '${remote_path}'"; then
+            echo "::error::${remote_path} already exists on the server; refusing to overwrite it."
+            echo "::error::Bump version_code in pubspec.yaml or remove the stale file manually after confirming it is not referenced by any release."
+            exit 1
           fi
 
-          echo "Uploading $APK_NAME to $USER@$HOST:$SERVER_REMOTE_DIR/..."
+          ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
+            "${USER}@${HOST}" \
+            "mkdir -p '${SERVER_REMOTE_DIR}' && rm -f '${remote_tmp}'"
 
-          scp "${ssh_extra[@]}" \
-            -P "$ssh_port" \
-            -i "$key_file" \
-            "$GITHUB_WORKSPACE/$APK_NAME" \
-            "${USER}@${HOST}:${SERVER_REMOTE_DIR}/${APK_NAME}"
+          scp "${ssh_extra[@]}" -P "$ssh_port" -i "$key_file" \
+            "$APK_FILE" \
+            "${USER}@${HOST}:${remote_tmp}"
 
-          echo "SCP upload completed."
+          remote_sha="$(
+            ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
+              "${USER}@${HOST}" \
+              "sha256sum '${remote_tmp}' 2>/dev/null || shasum -a 256 '${remote_tmp}'" \
+            | awk '{print $1}'
+          )"
 
-          rm -f "$key_file" "$hosts_file"
+          if [[ "$remote_sha" != "$APK_SHA256" ]]; then
+            echo "::error::Uploaded APK checksum mismatch (local=$APK_SHA256 remote=$remote_sha)."
+            ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
+              "${USER}@${HOST}" "rm -f '${remote_tmp}'" || true
+            exit 1
+          fi
+
+          # Atomic move into place. -n refuses to clobber a file that appeared
+          # concurrently. Previous releases keep their own unique files, which
+          # are the rollback artifacts (see docs/ROLLBACK.md).
+          ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
+            "${USER}@${HOST}" \
+            "mv -n '${remote_tmp}' '${remote_path}' && test ! -e '${remote_tmp}'"
+
+          echo "SCP upload completed and atomically published."
 
       # ------------------------------------------------------------------
-      # Stage 12 - Verify uploaded APK
+      # Stage 12 - Verify uploaded APK on the server
       # ------------------------------------------------------------------
       - name: Verify uploaded APK on server
         shell: bash
@@ -439,49 +618,47 @@ jobs:
           PORT: ${{ vars.SERVER_PORT }}
           SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
           APK_NAME: ${{ steps.apk.outputs.apk_name }}
+          APK_SHA256: ${{ steps.checksum.outputs.sha256 }}
         run: |
           set -euo pipefail
 
-          ssh_port="${PORT:-22}"
-
-          key_file="$(mktemp)"
-
-          printf '%s\n' "$SSH_KEY" > "$key_file"
-          chmod 600 "$key_file"
-
-          hosts_file=""
-
-          if [[ -n "${SERVER_KNOWN_HOSTS:-}" ]]; then
-            hosts_file="$(mktemp)"
-
-            printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
-            chmod 600 "$hosts_file"
-
-            ssh_extra=(-o "UserKnownHostsFile=$hosts_file")
-          else
-            ssh_extra=(
-              -o StrictHostKeyChecking=no
-              -o UserKnownHostsFile=/dev/null
-            )
-          fi
-
-          remote_path="${SERVER_REMOTE_DIR}/${APK_NAME}"
-
-          if ! ssh "${ssh_extra[@]}" \
-            -p "$ssh_port" \
-            -i "$key_file" \
-            "${USER}@${HOST}" \
-            "test -f '${remote_path}'"; then
-
-            echo "::error::Uploaded APK not found on server at ${remote_path}"
-
-            rm -f "$key_file" "$hosts_file"
+          if [[ -z "${SERVER_KNOWN_HOSTS:-}" ]]; then
+            echo "::error::SERVER_KNOWN_HOSTS secret is required."
             exit 1
           fi
 
-          echo "Verified APK exists on server: ${remote_path}"
+          ssh_port="${PORT:-22}"
+          key_file="$(mktemp)"
+          hosts_file="$(mktemp)"
+          trap 'rm -f "$key_file" "$hosts_file"' EXIT
 
-          rm -f "$key_file" "$hosts_file"
+          printf '%s\n' "$SSH_KEY" > "$key_file"
+          chmod 600 "$key_file"
+          printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
+          chmod 600 "$hosts_file"
+
+          ssh_extra=(
+            -o StrictHostKeyChecking=yes
+            -o "UserKnownHostsFile=$hosts_file"
+            -o ConnectTimeout=20
+          )
+
+          remote_path="${SERVER_REMOTE_DIR}/${APK_NAME}"
+
+          remote_sha="$(
+            ssh "${ssh_extra[@]}" -p "$ssh_port" -i "$key_file" \
+              "${USER}@${HOST}" \
+              "test -f '${remote_path}' && (sha256sum '${remote_path}' 2>/dev/null || shasum -a 256 '${remote_path}')" \
+            | awk '{print $1}'
+          )"
+
+          if [[ "$remote_sha" != "$APK_SHA256" ]]; then
+            echo "::error::Uploaded APK missing or checksum mismatch at ${remote_path}."
+            echo "::error::Expected $APK_SHA256, got '$remote_sha'."
+            exit 1
+          fi
+
+          echo "Verified server APK checksum: ${remote_path} ($remote_sha)"
 
       # ------------------------------------------------------------------
       # Stage 13 - Login to Backend
@@ -546,6 +723,12 @@ jobs:
           VERSION_NAME: ${{ steps.version.outputs.version_name }}
           VERSION_CODE: ${{ steps.version.outputs.version_code }}
           APK_NAME: ${{ steps.apk.outputs.apk_name }}
+          APK_SHA256: ${{ steps.checksum.outputs.sha256 }}
+          # Set the repository variable PUBLISH_INTEGRITY_FIELDS=true only
+          # after the backend accepts and stores `sha256` and `file_size`
+          # (see docs/UPDATE_FLOW.md). Until then they are not sent, so an
+          # older backend never rejects the publish because of unknown fields.
+          PUBLISH_INTEGRITY_FIELDS: ${{ vars.PUBLISH_INTEGRITY_FIELDS }}
         run: |
           set -euo pipefail
 
@@ -562,6 +745,15 @@ jobs:
               changelog: $cl,
               file_name: $fn
             }')"
+
+          if [[ "${PUBLISH_INTEGRITY_FIELDS:-}" == "true" ]]; then
+            apk_size="$(stat -c%s "$APK_FILE")"
+            payload="$(jq \
+              --arg sha "$APK_SHA256" \
+              --argjson size "$apk_size" \
+              '. + {sha256: $sha, file_size: $size}' <<< "$payload")"
+            echo "Including integrity fields (sha256, file_size=$apk_size)."
+          fi
 
           do_login() {
             local login_payload
@@ -673,10 +865,12 @@ jobs:
 
             echo "Verification attempt $attempt of 3..."
 
+            # `|| true` so a transient connection error is retried instead of
+            # aborting the step on the first attempt under `set -e`.
             resp="$(curl -sS -w '\n%{http_code}' \
               -H 'Content-Type: application/json' \
               -H 'Accept: application/json' \
-              "$BACKEND_BASE_URL/app/releases/latest")"
+              "$BACKEND_BASE_URL/app/releases/latest" || true)"
 
             code="$(echo "$resp" | tail -n1)"
             body="$(echo "$resp" | sed '$d')"
@@ -740,27 +934,110 @@ jobs:
           echo "file_name=$got_file"
 
       # ------------------------------------------------------------------
-      # Stage 16 - Verify download endpoint
+      # Stage 16 - Strict download verification
+      #
+      # Downloads the artifact exactly as a device would and compares its
+      # SHA-256 with the built APK. Any mismatch fails the release.
       # ------------------------------------------------------------------
-      - name: Verify download endpoint (HEAD)
-        continue-on-error: true
+      - name: Verify download endpoint serves the exact APK
         shell: bash
+        env:
+          APK_NAME: ${{ steps.apk.outputs.apk_name }}
+          APK_SHA256: ${{ steps.checksum.outputs.sha256 }}
         run: |
-          set -e
+          set -euo pipefail
 
-          code="$(curl -sS \
-            -o /dev/null \
-            -w '%{http_code}' \
-            --head \
-            "$BACKEND_BASE_URL/app/releases/latest/download")"
+          url="$(
+            jq -r '[ (.data // .) | (.file_url // "") ] | first' \
+              "$GITHUB_WORKSPACE/latest.json"
+          )"
 
-          echo "Download endpoint HEAD returned HTTP $code"
-
-          if [[ "$code" == "000" ]]; then
-            echo "::warning::Could not reach download endpoint."
-          else
-            echo "Download endpoint reachable (HTTP $code)."
+          if [[ -z "$url" || "$url" == "null" ]]; then
+            url="$BACKEND_BASE_URL/app/releases/latest/download"
+            echo "Release metadata has no file_url; verifying fallback endpoint."
           fi
+
+          echo "Downloading: $url"
+
+          http_code="$(
+            curl -sSL \
+              --retry 3 --retry-delay 5 --max-time 300 \
+              -o "$GITHUB_WORKSPACE/downloaded.apk" \
+              -w '%{http_code}' \
+              -H 'Accept: application/vnd.android.package-archive' \
+              "$url"
+          )"
+
+          if [[ "$http_code" != "200" ]]; then
+            echo "::error::Download endpoint returned HTTP $http_code (expected 200)."
+            exit 1
+          fi
+
+          downloaded_sha="$(
+            sha256sum "$GITHUB_WORKSPACE/downloaded.apk" | awk '{print $1}'
+          )"
+
+          if [[ "$downloaded_sha" != "$APK_SHA256" ]]; then
+            echo "::error::Downloaded APK checksum mismatch."
+            echo "::error::Expected (built):  $APK_SHA256"
+            echo "::error::Actual (downloaded): $downloaded_sha"
+            exit 1
+          fi
+
+          size="$(stat -c%s "$GITHUB_WORKSPACE/downloaded.apk")"
+          if [[ "$size" -lt 1048576 ]]; then
+            echo "::error::Downloaded APK is suspiciously small ($size bytes)."
+            exit 1
+          fi
+
+          file_type="$(file -b "$GITHUB_WORKSPACE/downloaded.apk")"
+          if ! grep -qi 'zip\|android' <<< "$file_type"; then
+            echo "::error::Downloaded file is not an APK/ZIP (detected: $file_type)."
+            exit 1
+          fi
+
+          echo "Verified download: $APK_NAME ($size bytes, sha256=$downloaded_sha)"
+
+      # ------------------------------------------------------------------
+      # Stage 16b - Remove an orphaned upload
+      #
+      # Runs only when the APK reached the server but the backend never
+      # accepted the release. Such a file is referenced by no release, and its
+      # name is unique to this build, so deleting it cannot affect any live or
+      # rollback artifact. If publishing DID succeed and a later verification
+      # failed, the file is kept on purpose: follow docs/ROLLBACK.md.
+      # ------------------------------------------------------------------
+      - name: Remove orphaned APK after failed publish
+        if: failure() && steps.upload.outcome == 'success' && steps.publish.outcome != 'success'
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          HOST: ${{ secrets.SERVER_HOST }}
+          USER: ${{ secrets.SERVER_USER }}
+          PORT: ${{ vars.SERVER_PORT }}
+          SERVER_KNOWN_HOSTS: ${{ secrets.SERVER_KNOWN_HOSTS }}
+          APK_NAME: ${{ steps.apk.outputs.apk_name }}
+        run: |
+          set -euo pipefail
+
+          key_file="$(mktemp)"
+          hosts_file="$(mktemp)"
+          trap 'rm -f "$key_file" "$hosts_file"' EXIT
+
+          printf '%s\n' "$SSH_KEY" > "$key_file"
+          chmod 600 "$key_file"
+          printf '%s\n' "$SERVER_KNOWN_HOSTS" > "$hosts_file"
+          chmod 600 "$hosts_file"
+
+          remote_path="${SERVER_REMOTE_DIR}/${APK_NAME}"
+
+          ssh -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=$hosts_file" \
+            -o ConnectTimeout=20 \
+            -p "${PORT:-22}" -i "$key_file" \
+            "${USER}@${HOST}" "rm -f '${remote_path}'"
+
+          echo "Removed unpublished upload ${remote_path}."
 
       # ------------------------------------------------------------------
       # Stage 17 - Cleanup
@@ -775,7 +1052,9 @@ jobs:
             "$GITHUB_WORKSPACE/changelog.txt" \
             "$GITHUB_WORKSPACE/latest.json" \
             "$GITHUB_WORKSPACE/publish_response.json" \
-            "$GITHUB_WORKSPACE"/app-v*.apk
+            "$GITHUB_WORKSPACE/downloaded.apk" \
+            "$GITHUB_WORKSPACE"/app-v*.apk \
+            "$GITHUB_WORKSPACE"/app-v*.apk.sha256
 
           echo "Temporary files cleaned up."
 
